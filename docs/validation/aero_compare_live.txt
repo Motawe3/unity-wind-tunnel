@@ -1,0 +1,136 @@
+AeroCompareLive — real solver runs, exported and compared
+cell size locked at 90 mm for every vehicle, 120 km/h, drag test averaged over 6+ flow-throughs
+reports → F:\Personal\Unity\VehicleAerodynamicsSimulation\Reports\live-comparison
+
+Range Rover Sport SVR (SUV): tunnel 29.2×6.3×11.1 m, 325×70×123 @ 89.9 mm, 2.80M cells, cap 38,594 steps
+  [PASS] Range Rover Sport SVR completed its test  (Session complete)
+   Cd 0.645  CdA 2.124 m²  Cl 0.767  ±2.7 % over 7.9 flow-throughs (251 samples), unsettled, 00:25
+  [PASS] Range Rover Sport SVR Cd is physical  (0.645)
+  [PASS] Range Rover Sport SVR averaged a real window  (251 samples)
+  [PASS] Range Rover Sport SVR reports an uncertainty  (2.68 %)
+Porsche 911 GT3 (sports car): tunnel 27.3×4.6×9.9 m, 303×51×110 @ 90.1 mm, 1.70M cells, cap 35,982 steps
+  [PASS] Porsche 911 GT3 completed its test  (Session complete)
+   Cd 0.550  CdA 1.250 m²  Cl 0.485  ±3.2 % over 7.9 flow-throughs (235 samples), unsettled, 00:13
+  [PASS] Porsche 911 GT3 Cd is physical  (0.550)
+  [PASS] Porsche 911 GT3 averaged a real window  (235 samples)
+  [PASS] Porsche 911 GT3 reports an uncertainty  (3.22 %)
+McLaren F1 GTR Longtail (race car): tunnel 32.2×4.1×10.1 m, 358×45×112 @ 90.0 mm, 1.80M cells, cap 42,513 steps
+  [PASS] McLaren F1 GTR Longtail completed its test  (Session complete)
+   Cd 0.580  CdA 1.199 m²  Cl -0.323  ±3.2 % over 8.0 flow-throughs (279 samples), unsettled, 00:16
+  [PASS] McLaren F1 GTR Longtail Cd is physical  (0.580)
+  [PASS] McLaren F1 GTR Longtail averaged a real window  (279 samples)
+  [PASS] McLaren F1 GTR Longtail reports an uncertainty  (3.19 %)
+  [PASS] every vehicle produced an archive  (3 of 3)
+  [PASS] all runs appear in the picker  (3 entries)
+  [PASS] 'aerosim-McLaren-F1-GTR-Longtail-20260812-131401.aerosim.json' loads
+  [PASS] 'aerosim-Porsche-911-GT3-20260812-131344.aerosim.json' loads
+  [PASS] 'aerosim-Range-Rover-Sport-SVR-20260812-131330.aerosim.json' loads
+
+--- pairwise comparisons ---
+
+Range Rover Sport SVR  vs  Porsche 911 GT3
+  [PASS] comparison is valid
+   Ok       Test procedure             ConstantSpeedDrag  |  ConstantSpeedDrag
+   Ok       Vehicle class              RoadVehicle  |  RoadVehicle
+   Ok       Reference area basis       frontal silhouette  |  frontal silhouette
+   Ok       Working fluid              Air  |  Air
+   Ok       Test speed                 120 km/h  |  120 km/h
+   Ok       Ground simulation          FixedFloor + rotating wheels  |  FixedFloor + rotating wheels
+   Ok       Grid                       325×70×123 @ 90 mm  |  303×51×110 @ 90 mm
+   Ok       Soft voxels                on  |  on
+   Ok       Solver version             0.3.0  |  0.3.0
+   Ok       Blockage                   4.7 %  |  5.0 %
+   Warning  Measurement uncertainty    ±2.7 % of Cd over 7.9 flow-throughs, unsettled  |  ±3.2 % of Cd over 7.9 flow-throughs, unsettled
+   PRIMARY CdA (drag area): 2.124 vs 1.250 (-41.2%), band ±3.2%
+   VERDICT: B — Porsche 911 GT3 — CdA (drag area) 1.250 vs 2.124 m² (41.2% lower), beyond the ±3.2% uncertainty on these two means. Treat the size of the difference with care: measurement uncertainty was flagged above.
+  [PASS] locked cell size removes the grid caveat  (Ok: 325×70×123 @ 90 mm vs 303×51×110 @ 90 mm)
+  [PASS] blocking nothing — these are all road-going cars in air
+  [PASS] the primary metric is drag area
+  [PASS] side force unscored on a straight-ahead test
+  [PASS] comparison HTML written  (aerosim-compare-Range-Rover-Sport-SVR-vs-Porsche-911-GT3-20260812-131401.html)
+  [PASS] HTML carries the verdict
+  [PASS] HTML carries the audit
+  [PASS] HTML names both vehicles
+  [PASS] HTML states the uncertainty band
+  [PASS] HTML is self-contained (no external requests)
+   exported aerosim-compare-Range-Rover-Sport-SVR-vs-Porsche-911-GT3-20260812-131401.html (11 KB)
+
+Range Rover Sport SVR  vs  McLaren F1 GTR Longtail
+  [PASS] comparison is valid
+   Ok       Test procedure             ConstantSpeedDrag  |  ConstantSpeedDrag
+   Note     Vehicle class              RoadVehicle  |  Motorsport
+   Ok       Reference area basis       frontal silhouette  |  frontal silhouette
+   Ok       Working fluid              Air  |  Air
+   Ok       Test speed                 120 km/h  |  120 km/h
+   Ok       Ground simulation          FixedFloor + rotating wheels  |  FixedFloor + rotating wheels
+   Ok       Grid                       325×70×123 @ 90 mm  |  358×45×112 @ 90 mm
+   Ok       Soft voxels                on  |  on
+   Ok       Solver version             0.3.0  |  0.3.0
+   Ok       Blockage                   4.7 %  |  5.1 %
+   Warning  Measurement uncertainty    ±2.7 % of Cd over 7.9 flow-throughs, unsettled  |  ±3.2 % of Cd over 8 flow-throughs, unsettled
+   PRIMARY CdA (drag area): 2.124 vs 1.199 (-43.6%), band ±3.2%
+   VERDICT: B — McLaren F1 GTR Longtail — CdA (drag area) 1.199 vs 2.124 m² (43.6% lower), beyond the ±3.2% uncertainty on these two means. Treat the size of the difference with care: measurement uncertainty was flagged above.
+  [PASS] locked cell size removes the grid caveat  (Ok: 325×70×123 @ 90 mm vs 358×45×112 @ 90 mm)
+  [PASS] blocking nothing — these are all road-going cars in air
+  [PASS] the primary metric is drag area
+  [PASS] lift unscored across classes
+  [PASS] side force unscored on a straight-ahead test
+  [PASS] comparison HTML written  (aerosim-compare-Range-Rover-Sport-SVR-vs-McLaren-F1-GTR-Longtail-20260812-131401.html)
+  [PASS] HTML carries the verdict
+  [PASS] HTML carries the audit
+  [PASS] HTML names both vehicles
+  [PASS] HTML states the uncertainty band
+  [PASS] HTML is self-contained (no external requests)
+   exported aerosim-compare-Range-Rover-Sport-SVR-vs-McLaren-F1-GTR-Longtail-20260812-131401.html (11 KB)
+
+Porsche 911 GT3  vs  McLaren F1 GTR Longtail
+  [PASS] comparison is valid
+   Ok       Test procedure             ConstantSpeedDrag  |  ConstantSpeedDrag
+   Note     Vehicle class              RoadVehicle  |  Motorsport
+   Ok       Reference area basis       frontal silhouette  |  frontal silhouette
+   Ok       Working fluid              Air  |  Air
+   Ok       Test speed                 120 km/h  |  120 km/h
+   Ok       Ground simulation          FixedFloor + rotating wheels  |  FixedFloor + rotating wheels
+   Ok       Grid                       303×51×110 @ 90 mm  |  358×45×112 @ 90 mm
+   Ok       Soft voxels                on  |  on
+   Ok       Solver version             0.3.0  |  0.3.0
+   Ok       Blockage                   5.0 %  |  5.1 %
+   Warning  Measurement uncertainty    ±3.2 % of Cd over 7.9 flow-throughs, unsettled  |  ±3.2 % of Cd over 8 flow-throughs, unsettled
+   PRIMARY CdA (drag area): 1.250 vs 1.199 (-4.1%), band ±3.2%
+   VERDICT: B — McLaren F1 GTR Longtail — CdA (drag area) 1.199 vs 1.250 m² (4.1% lower), beyond the ±3.2% uncertainty on these two means. Treat the size of the difference with care: measurement uncertainty was flagged above.
+  [PASS] locked cell size removes the grid caveat  (Ok: 303×51×110 @ 90 mm vs 358×45×112 @ 90 mm)
+  [PASS] blocking nothing — these are all road-going cars in air
+  [PASS] the primary metric is drag area
+  [PASS] lift unscored across classes
+  [PASS] side force unscored on a straight-ahead test
+  [PASS] comparison HTML written  (aerosim-compare-Porsche-911-GT3-vs-McLaren-F1-GTR-Longtail-20260812-131401.html)
+  [PASS] HTML carries the verdict
+  [PASS] HTML carries the audit
+  [PASS] HTML names both vehicles
+  [PASS] HTML states the uncertainty band
+  [PASS] HTML is self-contained (no external requests)
+   exported aerosim-compare-Porsche-911-GT3-vs-McLaren-F1-GTR-Longtail-20260812-131401.html (11 KB)
+
+--- summary: drag area, the comparable quantity ---
+  Range Rover Sport SVR      CdA 2.124 m²   Cd 0.645   A 3.293 m²   ±2.7 % over 7.9 FT   UNSETTLED
+  Porsche 911 GT3            CdA 1.250 m²   Cd 0.550   A 2.271 m²   ±3.2 % over 7.9 FT   UNSETTLED
+  McLaren F1 GTR Longtail    CdA 1.199 m²   Cd 0.580   A 2.067 m²   ±3.2 % over 8.0 FT   UNSETTLED
+
+--- against published figures (approximate; orientation only) ---
+  vehicle                     CdA sim   CdA real   ratio    Cd sim   Cd real   A sim   A real
+  ---------------------------------------------------------------------------------------------
+  range-rover-sport-svr-2022   2.124      1.044    2.03x    0.645      0.36    3.29    2.90
+  Sketchfab_2021_06_03_13_04   1.250      0.779    1.60x    0.550      0.38    2.27    2.05
+  mclaren_f1_gtr_longtail_am   1.199      0.720    1.67x    0.580      0.40    2.07    1.80
+  [PASS] the simulated drag-area ranking matches the real one  (race car < sports car < SUV)
+
+  Pairwise ratios — this is what the comparison feature actually sells:
+    race car     vs sports car    sim 1.04x   real 1.08x   (delta exaggerated by -4 %)
+    race car     vs SUV           sim 1.77x   real 1.45x   (delta exaggerated by 22 %)
+    sports car   vs SUV           sim 1.70x   real 1.34x   (delta exaggerated by 27 %)
+
+  Read: absolute CdA is ~1.6-2.0x high (the wall-model limit), the RANKING is right,
+  and pairwise ratios are directionally right but exaggerated — the bias is larger on
+  the bluffest body, so it does not cancel completely between different shapes.
+
+LIVE COMPARISON: PASS (53 checks)

@@ -1,0 +1,20 @@
+AeroSim validation — tunnel (12.00, 5.00, 5.00) @ 256, free air (OpenFloor), 30 m/s
+averaging 20 samples after 20 flow-throughs
+
+case                       soft   A_meas   A_true   Cd_meas   Cd_ref   ratio
+-------------------------------------------------------------------------------
+sphere D=1m                ON      0.815    0.785     0.646    0.450    1.44x
+cube 1m face-on            ON      0.969    1.000     1.297    1.050    1.24x
+plate 1m normal            ON      0.000    1.000   635.291    1.170  542.98x
+sphere D=1m                OFF     0.890    0.785     0.633    0.450    1.41x
+cube 1m face-on            OFF     1.162    1.000     0.904    1.050    0.86x
+plate 1m normal            OFF     1.162    1.000     1.132    1.170    0.97x
+
+vehicle (Range Rover Sport SVR) — published Cd ~0.35, A ~2.9 m²
+case                soft   res    A_meas   ride    Cd      Cl     ClF     ClR    blockage
+--------------------------------------------------------------------------------------------
+range rover         OFF   384     3.397  0.07m   0.983   0.811   0.776   0.035  3.55 %
+range rover         OFF   384     3.406  0.14m   1.055   0.575   0.693  -0.118  3.56 %
+range rover         OFF   384     3.328  0.22m   1.167  -0.020   0.227  -0.246  3.48 %
+range rover         OFF   384     3.356  0.35m   1.104   0.045   0.274  -0.229  3.50 %
+range rover         OFF   384     3.347  1.50m   1.086   0.039   0.142  -0.103  3.50 %

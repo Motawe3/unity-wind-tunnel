@@ -1,0 +1,61 @@
+Stage 1 A/B — interpolated (Bouzidi) bounce-back
+reference bodies: (12.00, 5.00, 5.00) @ 256 (46.9 mm), 30 m/s, free air | Ahmed: (8.04, 1.40, 1.87) @ 536 (15.0 mm), 40 m/s, fixed floor
+averaging 5 flow-throughs per run; each case run twice, toggle flipped
+
+--- plate (soft off) ---
+  half-way : Cd 1.037 ± 1.0 %   A 1.1624 m²   00:20
+  [PASS] plate (soft off) (half-way) completed  (Session complete)
+  Bouzidi  : Cd 1.071 ± 1.0 %   A 1.1624 m²   00:20
+  [PASS] plate (soft off) (Bouzidi) completed  (Session complete)
+
+--- cube (soft off) ---
+  half-way : Cd 0.944 ± 2.8 %   A 1.1624 m²   00:20
+  [PASS] cube (soft off) (half-way) completed  (Session complete)
+  Bouzidi  : Cd 0.899 ± 2.9 %   A 1.1624 m²   00:21
+  [PASS] cube (soft off) (Bouzidi) completed  (Session complete)
+
+--- sphere (soft off) ---
+  half-way : Cd 0.625 ± 1.0 %   A 0.8899 m²   00:16
+  [PASS] sphere (soft off) (half-way) completed  (Session complete)
+  Bouzidi  : Cd 0.574 ± 1.4 %   A 0.8899 m²   00:21
+  [PASS] sphere (soft off) (Bouzidi) completed  (Session complete)
+
+--- sphere (soft on) ---
+  half-way : Cd 0.657 ± 1.3 %   A 0.8152 m²   00:21
+  [PASS] sphere (soft on) (half-way) completed  (Session complete)
+  Bouzidi  : Cd 0.726 ± 6.1 %   A 0.8152 m²   00:21
+  [PASS] sphere (soft on) (Bouzidi) completed  (Session complete)
+
+--- Ahmed 0° (soft on) ---
+  half-way : Cd 1.073 ± 1.9 %   A 0.1120 m²   01:36
+  [PASS] Ahmed 0° (soft on) (half-way) completed  (Session complete)
+  Bouzidi  : Cd 1.070 ± 1.5 %   A 0.1120 m²   01:36
+  [PASS] Ahmed 0° (soft on) (Bouzidi) completed  (Session complete)
+
+--- Ahmed 0° (soft off) ---
+  half-way : Cd 1.085 ± 2.1 %   A 0.1120 m²   01:36
+  [PASS] Ahmed 0° (soft off) (half-way) completed  (Session complete)
+  Bouzidi  : Cd 1.097 ± 1.5 %   A 0.1120 m²   01:36
+  [PASS] Ahmed 0° (soft off) (Bouzidi) completed  (Session complete)
+
+case                     half-way        Bouzidi         change    published   ratio off  ratio on
+------------------------------------------------------------------------------------------------------
+plate (soft off)          1.037 ± 1 %    1.071 ± 1 %      3.2 %       1.17      0.89x     0.91x
+cube (soft off)           0.944 ± 3 %    0.899 ± 3 %     -4.7 %       1.05      0.90x     0.86x
+sphere (soft off)         0.625 ± 1 %    0.574 ± 1 %     -8.1 %      ~0.45      1.39x     1.28x
+sphere (soft on)          0.657 ± 1 %    0.726 ± 6 %     10.5 %      ~0.45      1.46x     1.61x
+Ahmed 0° (soft on)        1.073 ± 2 %    1.070 ± 1 %     -0.4 %      0.250      4.29x     4.28x
+Ahmed 0° (soft off)       1.085 ± 2 %    1.097 ± 1 %      1.1 %      0.250      4.34x     4.39x
+
+--- verdict ---
+  [PASS] plate (soft off) did not move materially  (3.2 % (band ±2.1 %))
+  [PASS] cube (soft off) did not move materially  (-4.7 % (band ±5.7 %))
+  sphere (soft off)        fell by 8.1 % (band ±2.8 %) — TOWARD the published value
+  sphere (soft on)         rose by 10.5 % (band ±12.2 %) — inside the noise, no effect
+  Ahmed 0° (soft on)       fell by 0.4 % (band ±3.9 %) — inside the noise, no effect
+  Ahmed 0° (soft off)      rose by 1.1 % (band ±4.1 %) — inside the noise, no effect
+
+  Read: the sharp-edged cases are the correctness check (they must not move);
+  the sphere and Ahmed cases are the hypothesis under test.
+
+INTERPOLATED WALLS: PASS (14 checks)

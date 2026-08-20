@@ -1,0 +1,36 @@
+AeroFitAccuracyTest — hand-sized tunnel vs auto-fitted tunnel, same vehicle,
+same solver settings, 10 flow-throughs, Cd averaged over the last 3.
+Range Rover Sport SVR — published Cd ~0.35 (this solver reads high on smooth bodies:
+no wall model, so the absolute value is not the point; the domain effect is).
+
+  hand-sized 26x8x12: FT  1  Cd 1.011  Cl 0.699  CV Infinity
+  hand-sized 26x8x12: FT  2  Cd 1.100  Cl 0.260  CV 3.48 %
+  hand-sized 26x8x12: FT  3  Cd 1.117  Cl 0.116  CV 2.41 %
+  hand-sized 26x8x12: FT  4  Cd 1.166  Cl 0.133  CV 2.41 %
+  hand-sized 26x8x12: FT  5  Cd 1.104  Cl 0.195  CV 6.44 %
+  hand-sized 26x8x12: FT  6  Cd 1.156  Cl 0.105  CV 3.68 %
+  hand-sized 26x8x12: FT  7  Cd 1.066  Cl 0.482  CV 3.69 %
+  hand-sized 26x8x12: FT  8  Cd 1.176  Cl 0.280  CV 4.62 %
+  hand-sized 26x8x12: FT  9  Cd 1.146  Cl -0.009  CV 5.87 %
+  hand-sized 26x8x12: FT 10  Cd 1.138  Cl 0.082  CV 2.11 %
+  hand-sized 26x8x12: averaged 144 force samples over the last 3 flow-throughs
+  tunnel 29.23×6.26×11.1 m · Ultra (384×82×146, 76 mm cells, 4.6M cells, 0.8 GB) · 64 cells across the body · blockage ≈ 4.6 % · FixedFloor · Air
+  auto-fitted: FT  1  Cd 0.773  Cl 0.907  CV Infinity
+  auto-fitted: FT  2  Cd 0.854  Cl 0.762  CV 1.91 %
+  auto-fitted: FT  3  Cd 0.852  Cl 0.914  CV 5.01 %
+  auto-fitted: FT  4  Cd 0.870  Cl 0.684  CV 1.24 %
+  auto-fitted: FT  5  Cd 0.827  Cl 1.082  CV 2.19 %
+  auto-fitted: FT  6  Cd 0.849  Cl 1.051  CV 3.62 %
+  auto-fitted: FT  7  Cd 0.825  Cl 1.235  CV 2.49 %
+  auto-fitted: FT  8  Cd 0.793  Cl 0.922  CV 5.84 %
+  auto-fitted: FT  9  Cd 0.784  Cl 1.125  CV 7.95 %
+  auto-fitted: FT 10  Cd 0.870  Cl 0.938  CV 3.47 %
+  auto-fitted: averaged 144 force samples over the last 3 flow-throughs
+
+case                 tunnel (m)            cell   blockage   Cd     std     Cl      CdA
+------------------------------------------------------------------------------------------
+hand-sized 26x8x12   26.0x8.0x12.0           68mm    3.2 %   1.125  0.050   0.222   3.475
+auto-fitted          29.2x6.2x11.1           76mm    4.6 %   0.836  0.047   0.978   2.692
+
+Cd 1.125 → 0.836 (-25.7%), blockage 3.2 % → 4.6 %, cells 68 mm → 76 mm.
+Read this as the blockage/proportion correction, not as validation: the two cases necessarily differ in cell size too (a tier fixes the streamwise cell count, so a longer domain is a coarser one), and neither number is a trustworthy absolute Cd.

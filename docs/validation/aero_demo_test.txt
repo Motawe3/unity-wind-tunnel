@@ -1,0 +1,23 @@
+AeroDemoTest — deterministic demo run, Range Rover, Medium grid
+dims (192, 59, 89)  frontal 3.4842 m²  solid cells 3384
+flags hash    xor 00000006 sum 266230
+coverage hash xor 3E5CAE55 sum 3398.1852149218321 (n=1008192)
+FT 1: Cd 1.078 Cl 0.580
+FT 2: Cd 1.149 Cl 0.529
+FT 3: Cd 1.242 Cl 0.693
+FT 4: Cd 1.263 Cl 0.490
+FT 5: Cd 1.196 Cl 0.601
+FT 6: Cd 1.119 Cl 0.407
+
+--- surface heatmap smoke test ---
+shader WindTunnel/FlowSlice: found, hasErrors=False
+shader WindTunnel/FlowSliceImage: found, hasErrors=False
+shader WindTunnel/SurfaceHeatmap: found, hasErrors=False
+shader WindTunnel/FlowParticle: found, hasErrors=False
+rho probe inlet ref at (2, 41, 44): rho 0.99316 (gauge Cp -0.712)
+rho probe above roof at (96, 21, 44): rho 0.98389 (gauge Cp -1.678)
+painted 171/171 renderers, IsPainting=True
+screenshot aero_demo_heatmap_pressure.png (223 KB)
+screenshot aero_demo_heatmap_shear.png (264 KB)
+restored 171/171 renderers after disable
+HEATMAP: PASS

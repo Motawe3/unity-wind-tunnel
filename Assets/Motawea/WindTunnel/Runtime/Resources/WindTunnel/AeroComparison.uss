@@ -1,0 +1,210 @@
+/* Wind Tunnel comparison modal.
+
+   The view builds its own layout in C# so it can be hosted by the runtime HUD and by
+   an editor window alike — but hover, active and disabled states cannot be expressed
+   as inline styles, and neither can Unity's internal scroller/dropdown parts. Those
+   live here, in a stylesheet the view loads from the package's Resources, so the modal
+   carries its own theme instead of borrowing the project's.
+
+   Palette is the runtime console's: obsidian ground, silver text, petrol-teal accent.
+   A and B each get an identity colour — teal for A, violet for B — used ONLY to say
+   "this is side A" or "this is side B". Green / amber / red stay reserved for
+   verdicts, so a colour never means both "B" and "good". */
+
+/* ---------- header + buttons ---------- */
+
+.aero-cmp-btn {
+    height: 28px;
+    padding: 0 14px;
+    margin: 0;
+    background-color: rgb(14, 17, 22);
+    border-width: 1px;
+    border-color: rgb(70, 78, 92);
+    border-radius: 2px;
+    color: rgb(214, 220, 228);
+    font-size: 11px;
+    letter-spacing: 2px;
+    -unity-font-style: bold;
+}
+
+.aero-cmp-btn:hover {
+    border-color: rgb(150, 160, 172);
+    background-color: rgb(24, 29, 36);
+    color: rgb(240, 244, 248);
+}
+
+.aero-cmp-btn:active {
+    border-color: rgb(51, 194, 209);
+    background-color: rgb(14, 40, 44);
+    color: rgb(120, 218, 229);
+}
+
+/* ---------- A / B identity ---------- */
+
+.aero-cmp-badge {
+    width: 19px;
+    height: 19px;
+    margin-right: 8px;
+    border-width: 1px;
+    border-radius: 3px;
+    font-size: 11px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.aero-cmp-badge-a {
+    border-color: rgb(51, 194, 209);
+    color: rgb(120, 218, 229);
+    background-color: rgba(51, 194, 209, 0.14);
+}
+
+.aero-cmp-badge-b {
+    border-color: rgb(167, 139, 250);
+    color: rgb(196, 176, 255);
+    background-color: rgba(167, 139, 250, 0.14);
+}
+
+/* Column markers: a hairline down the A and B columns, solid in the header row and
+   barely-there in the body, so the eye can follow a side without reading labels. */
+.aero-cmp-col-a,
+.aero-cmp-col-b {
+    border-left-width: 2px;
+    padding-left: 8px;
+}
+
+.aero-cmp-col-a { border-left-color: rgba(51, 194, 209, 0.20); }
+.aero-cmp-col-b { border-left-color: rgba(167, 139, 250, 0.20); }
+
+.aero-cmp-head .aero-cmp-col-a { border-left-color: rgb(51, 194, 209); }
+.aero-cmp-head .aero-cmp-col-b { border-left-color: rgb(167, 139, 250); }
+
+/* ---------- result file list ---------- */
+
+.aero-cmp-file {
+    margin: 0;
+    padding: 6px 10px 6px 8px;
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+    border-left-width: 2px;
+    border-left-color: rgba(0, 0, 0, 0);
+    border-radius: 0;
+    font-size: 11px;
+    color: rgb(186, 194, 205);
+    -unity-text-align: middle-left;
+    white-space: normal;
+}
+
+.aero-cmp-file:hover {
+    background-color: rgb(20, 25, 31);
+    color: rgb(240, 244, 248);
+}
+
+.aero-cmp-file:disabled {
+    color: rgb(150, 90, 84);
+    opacity: 1;
+}
+
+.aero-cmp-file-a {
+    background-color: rgba(51, 194, 209, 0.13);
+    border-left-color: rgb(51, 194, 209);
+    color: rgb(160, 232, 240);
+    -unity-font-style: bold;
+}
+
+.aero-cmp-file-b {
+    background-color: rgba(167, 139, 250, 0.13);
+    border-left-color: rgb(167, 139, 250);
+    color: rgb(208, 192, 255);
+    -unity-font-style: bold;
+}
+
+.aero-cmp-file-a:hover { background-color: rgba(51, 194, 209, 0.20); }
+.aero-cmp-file-b:hover { background-color: rgba(167, 139, 250, 0.20); }
+
+/* ---------- test-procedure dropdowns ---------- */
+
+.aero-cmp-dropdown {
+    margin: 7px 0 0 0;
+    min-height: 24px;
+}
+
+.aero-cmp-dropdown .unity-base-popup-field__input {
+    height: 24px;
+    min-height: 24px;
+    padding: 0 8px;
+    background-color: rgb(18, 22, 28);
+    border-width: 1px;
+    border-color: rgb(42, 47, 56);
+    border-radius: 2px;
+    color: rgb(214, 220, 228);
+    font-size: 11px;
+    letter-spacing: 1px;
+}
+
+.aero-cmp-dropdown .unity-base-popup-field__input:hover {
+    border-color: rgb(51, 194, 209);
+    color: rgb(240, 244, 248);
+}
+
+.aero-cmp-dropdown .unity-base-popup-field__text {
+    font-size: 11px;
+    -unity-text-align: middle-left;
+}
+
+.aero-cmp-dropdown .unity-base-popup-field__arrow {
+    -unity-background-image-tint-color: rgb(120, 130, 144);
+    margin-right: 2px;
+}
+
+.aero-cmp-dropdown:disabled {
+    opacity: 0.45;
+}
+
+/* ---------- scrollers: the console's thin rail, no arrow buttons ---------- */
+
+.aero-cmp-dialog .unity-scroller--vertical {
+    width: 8px;
+    border-width: 0;
+    background-color: rgba(0, 0, 0, 0);
+    margin-left: 2px;
+}
+
+.aero-cmp-dialog .unity-scroller--vertical .unity-scroller__low-button,
+.aero-cmp-dialog .unity-scroller--vertical .unity-scroller__high-button {
+    display: none;
+}
+
+.aero-cmp-dialog .unity-scroller--vertical .unity-scroller__slider {
+    width: 8px;
+    min-width: 8px;
+    margin-top: 0;      /* reclaims the space reserved for the arrow buttons */
+    margin-bottom: 0;
+}
+
+.aero-cmp-dialog .unity-scroller--vertical .unity-base-slider__tracker {
+    background-color: rgb(14, 17, 22);
+    border-width: 0;
+    border-radius: 4px;
+}
+
+.aero-cmp-dialog .unity-scroller--vertical .unity-base-slider__dragger {
+    width: 8px;
+    left: 0;
+    background-color: rgb(38, 62, 72);
+    border-width: 0;
+    border-radius: 4px;
+}
+
+.aero-cmp-dialog .unity-scroller--vertical .unity-base-slider__dragger:hover {
+    background-color: rgb(51, 194, 209);
+}
+
+.aero-cmp-dialog .unity-scroll-view__content-viewport {
+    overflow: hidden;
+}
+
+/* ---------- table rows ---------- */
+
+.aero-cmp-row:hover {
+    background-color: rgba(255, 255, 255, 0.025);
+}

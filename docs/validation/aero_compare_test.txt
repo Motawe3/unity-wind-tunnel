@@ -1,0 +1,81 @@
+AeroCompareTest — scratch folder C:\Users\moham\AppData\Local\Temp\windtunnel-compare-test
+exported windtunnel-Baseline-SUV-20260821-014240
+[PASS] JSON archive written
+[PASS] HTML written
+[PASS] CSV written
+[PASS] JSON reloads
+[PASS] vehicle name survives
+[PASS] vehicle class survives
+[PASS] reference area survives
+[PASS] grid settings survive
+[PASS] Cd survives  (0.4000)
+[PASS] metadata marked complete
+[PASS] CSV fallback loads
+[PASS] CSV keeps Cd
+[PASS] CSV flagged as incomplete metadata
+[PASS] listing collapses the twin formats  (1 entries)
+[PASS] comparable pair
+[PASS] B wins on a 7% CdA reduction  (winner 1: B — Improved SUV)
+[PASS] primary metric is CdA for a road vehicle  (CdA (drag area))
+[PASS] delta is B − A  (-0.070)
+[PASS] clean pair has no caveats
+  verdict: B — Improved SUV — CdA (drag area) 0.930 vs 1.000 m² (7.0% lower), beyond the ±0.4% uncertainty on these two means.
+[PASS] 0.2% delta is inside the noise band  (Too close to call)
+[PASS] row flagged as within noise
+[PASS] noise band comes from the uncertainty on the means, not sample scatter  (band ±0.40%)
+[PASS] a 2% improvement is resolvable  (B — Slightly better SUV)
+  small-gain verdict: B — Slightly better SUV — CdA (drag area) 0.980 vs 1.000 m² (2.0% lower), beyond the ±0.4% uncertainty on these two means.
+[PASS] drag vs yaw has no counterpart test  ('Yaw SUV' has no ConstantSpeedDrag test to compare against)
+[PASS] road vs aircraft is blocked
+[PASS] blocked comparison gives no verdict  (Not comparable)
+[PASS] class mismatch flagged
+[PASS] reference-area basis mismatch flagged
+[PASS] road vehicle vs motorsport is comparable  (B — GT race car)
+[PASS] class difference is a note, not a caveat or a block
+[PASS] a note leaves the pair clean
+[PASS] lift is unscored across different classes
+[PASS] but drag is still scored across them
+[PASS] lift IS scored between two of the same class
+[PASS] more downforce wins for motorsport
+[PASS] peak |Cy| is unscored outside a yaw sweep
+[PASS] verdict carries no caveat for a noted difference  (CdA (drag area) 0.781 vs 1.000 m² (21.9% lower), beyond the ±0.4% uncertainty on these two means.)
+[PASS] mixed classes still produce a verdict  (B — GT race car)
+[PASS] primary metric is still CdA
+[PASS] lift is left unscored when the objectives disagree
+  mixed-class verdict: B — GT race car — CdA (drag area) 0.781 vs 1.000 m² (21.9% lower), beyond the ±0.4% uncertainty on these two means.
+[PASS] manual reference area is a caveat, not a block
+[PASS] primary metric is L/D for an aircraft  (Lift / drag)
+[PASS] higher L/D wins  (B — Drone B)
+  drone verdict: B — Drone B — Lift / drag 7.86 vs 6.88  (14.3% higher), beyond the ±0.4% uncertainty on these two means.
+[PASS] different grid warns but still compares
+[PASS] grid difference flagged
+[PASS] soft-voxel difference flagged
+[PASS] verdict names the flagged checks  (CdA (drag area) 0.930 vs 1.000 m² (7.0% lower), beyond the ±0.4% uncertainty on these two means. Treat the size of the difference with care: grid, soft voxels were flagged above.)
+[PASS] sweep matched point by point  (5 matched rows)
+[PASS] sweep rows differ in the right direction
+[PASS] peak |Cy| is reported for a yaw sweep
+[PASS] and scored, because a yaw sweep is where side force means something
+[PASS] modal lists both results  (2 entries)
+[PASS] modal selects both sides
+[PASS] modal produced a report
+[PASS] modal report names the same winner  (B — Improved SUV)
+[PASS] modal rendered the tables  (143 labels rendered)
+[PASS] impact applies to a comparable drag pair
+[PASS] impact carries the measured CdA delta  (-7.00)
+[PASS] measured rows come before estimates
+[PASS] highway fuel estimate exists and spans the honest range  (-2.2 to -3.9 %)
+[PASS] estimates are marked as estimates, not measurements
+[PASS] assumptions are stated
+[PASS] an improvement colour-codes every reading as better
+[PASS] the reverse comparison colour-codes every reading as worse  (8 readings)
+[PASS] a delta inside the noise band produces NO consequences  (0 readings on a -0.12% delta)
+[PASS] aircraft get measured rows only — road fuel arithmetic does not apply  (2 readings)
+[PASS] a non-comparable pair carries no real-world section
+[PASS] comparison page has the real-world section
+[PASS] comparison page states the assumptions
+[PASS] comparison page ends with the purpose block
+[PASS] comparison page wears the console theme
+[PASS] session report ends with the purpose block
+[PASS] session report wears the console theme
+
+COMPARE TESTS: PASS (73 checks)

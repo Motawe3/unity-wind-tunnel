@@ -1,0 +1,157 @@
+AeroAutoFitTest — tunnel auto-fit across vehicle classes
+
+--- range-rover-sport-svr-2022 as RoadVehicle ---
+  [PASS] fit produced a plan
+  tunnel 29.23×6.26×11.1 m · Ultra (384×82×146, 76 mm cells, 4.6M cells, 0.5 GB) · 64 cells across the body · blockage ≈ 4.6 % · FixedFloor · Air
+  [PASS] ground boundary matches the class  (FixedFloor vs FixedFloor)
+  [PASS] wheel rotation matches the class  (True (wheels 4))
+  [PASS] working fluid matches the class  (Air vs Air)
+  [PASS] grid fits the memory budget  (0.51 GB of 1.00 GB)
+  [PASS] grid is under the cell guard  (4,597,248 cells)
+  [PASS] body is resolved by at least 16 cells  (64 cells across 4.87 m)
+  [PASS] body is inside the domain streamwise  (x -4.31..0.56 in -11.62..17.62)
+  [PASS] body is inside the domain laterally  (z -5.11..-2.89 in -9.56..1.56)
+  [PASS] body is inside the domain vertically  (y -0.01..1.79 in 0.00..6.24)
+  [PASS] laterally centred  (offset 0.000 m)
+  [PASS] upstream margin follows the class profile  (7.31 m vs 7.31 m)
+  [PASS] wake has more room than the inlet  (downstream 17.05 m vs upstream 7.31 m)
+  [PASS] contact patches sit on the tunnel floor  (contact 0.000 m, floor 0.000 m)
+  [PASS] floor pinned to the scene ground plane  (floor 0.000 m)
+  [PASS] simulation starts after the fit
+  measured: frontal 3.222 m², planform 9.342 m², reference 3.222 m² (FrontalSilhouette), blockage 4.64 %
+  [PASS] frontal area measured
+  [PASS] planform area measured
+  [PASS] blockage under the wind-tunnel guidance  (4.64 %)
+  [PASS] blockage close to the auto-fit target  (4.64 % vs target 5.0 %)
+  [PASS] reference-area convention follows the class  (FrontalSilhouette vs FrontalSilhouette)
+  [PASS] reference area is the one the convention names
+  after 3 flow-throughs: Cd 0.688 Cl 0.402 CdA 2.216 m² drag 1221.5 N
+  [PASS] a force sample was produced
+  [PASS] Cd is finite and positive  (0.6877)
+  [PASS] Cd is in a physical range for a bluff body  (0.6877)
+
+--- MolniaAnimated as Motorsport ---
+  [PASS] fit produced a plan
+  tunnel 51.82×3.63×14.21 m · Ultra (384×27×105, 135 mm cells, 1.1M cells, 0.1 GB) · 59 cells across the body · blockage ≈ 3.7 % · FixedFloor · Air
+  [PASS] ground boundary matches the class  (FixedFloor vs FixedFloor)
+  [PASS] wheel rotation matches the class  (False (wheels 0))
+  [PASS] working fluid matches the class  (Air vs Air)
+  [PASS] grid fits the memory budget  (0.12 GB of 1.00 GB)
+  [PASS] grid is under the cell guard  (1,088,640 cells)
+  [PASS] body is resolved by at least 16 cells  (59 cells across 7.97 m)
+  [PASS] body is inside the domain streamwise  (x -10.95..-2.98 in -22.91..28.91)
+  [PASS] body is inside the domain laterally  (z -5.42..-2.58 in -11.08..3.08)
+  [PASS] body is inside the domain vertically  (y 0.00..1.04 in 0.00..3.64)
+  [PASS] laterally centred  (offset 0.000 m)
+  [PASS] upstream margin follows the class profile  (11.96 m vs 11.96 m)
+  [PASS] wake has more room than the inlet  (downstream 31.89 m vs upstream 11.96 m)
+  [PASS] contact patches sit on the tunnel floor  (contact 0.000 m, floor 0.000 m)
+  [PASS] floor pinned to the scene ground plane  (floor 0.000 m)
+  [PASS] simulation starts after the fit
+  measured: frontal 2.203 m², planform 10.888 m², reference 2.203 m² (FrontalSilhouette), blockage 4.27 %
+  [PASS] frontal area measured
+  [PASS] planform area measured
+  [PASS] blockage under the wind-tunnel guidance  (4.27 %)
+  [PASS] blockage close to the auto-fit target  (4.27 % vs target 5.0 %)
+  [PASS] reference-area convention follows the class  (FrontalSilhouette vs FrontalSilhouette)
+  [PASS] reference area is the one the convention names
+
+--- spy dron as Aircraft ---
+  [PASS] fit produced a plan
+  tunnel 35.37×5.15×27.74 m · Ultra (384×56×301, 92 mm cells, 6.5M cells, 0.7 GB) · 55 cells across the body · blockage ≈ 0.8 % · OpenFloor · Air
+  [PASS] ground boundary matches the class  (OpenFloor vs OpenFloor)
+  [PASS] wheel rotation matches the class  (False (wheels 0))
+  [PASS] working fluid matches the class  (Air vs Air)
+  [PASS] grid fits the memory budget  (0.71 GB of 1.00 GB)
+  [PASS] grid is under the cell guard  (6,472,704 cells)
+  [PASS] body is resolved by at least 16 cells  (55 cells across 5.05 m)
+  [PASS] body is inside the domain streamwise  (x -4.58..0.47 in -14.69..20.69)
+  [PASS] body is inside the domain laterally  (z -6.77..-1.23 in -17.86..9.86)
+  [PASS] body is inside the domain vertically  (y 2.06..3.09 in 0.00..5.16)
+  [PASS] laterally centred  (offset 0.000 m)
+  [PASS] upstream margin follows the class profile  (10.11 m vs 10.11 m)
+  [PASS] wake has more room than the inlet  (downstream 20.21 m vs upstream 10.11 m)
+  [PASS] body is centred in the domain cross-section  (offset 0.000 m)
+  [PASS] simulation starts after the fit
+  measured: frontal 1.256 m², planform 3.708 m², reference 3.708 m² (Planform), blockage 0.88 %
+  [PASS] frontal area measured
+  [PASS] planform area measured
+  [PASS] blockage under the wind-tunnel guidance  (0.88 %)
+  [PASS] blockage close to the auto-fit target  (0.88 % vs target 5.0 %)
+  [PASS] reference-area convention follows the class  (Planform vs Planform)
+  [PASS] reference area is the one the convention names
+  [PASS] planform is the larger area for a flying wing/drone  (3.708 vs 1.256 m²)
+  after 3 flow-throughs: Cd 0.627 Cl 0.417 CdA 2.323 m² drag 1280.6 N
+  [PASS] a force sample was produced
+  [PASS] Cd is finite and positive  (0.6266)
+  [PASS] Cd is in a physical range for a bluff body  (0.6266)
+
+--- Boat as Watercraft (AboveWaterlineAir) ---
+  [PASS] fit produced a plan
+  tunnel 55.31×7.42×10.74 m · Ultra (384×52×75, 144 mm cells, 1.5M cells, 0.2 GB) · 64 cells across the body · blockage ≈ 3.1 % · FixedFloor · Air
+  [PASS] ground boundary matches the class  (FixedFloor vs FixedFloor)
+  [PASS] wheel rotation matches the class  (False (wheels 0))
+  [PASS] working fluid matches the class  (Air vs Air)
+  [PASS] grid fits the memory budget  (0.16 GB of 1.00 GB)
+  [PASS] grid is under the cell guard  (1,497,600 cells)
+  [PASS] body is resolved by at least 16 cells  (64 cells across 9.22 m)
+  [PASS] body is inside the domain streamwise  (x -10.83..-1.61 in -24.65..30.65)
+  [PASS] body is inside the domain laterally  (z -5.07..-2.93 in -9.40..1.40)
+  [PASS] body is inside the domain vertically  (y -0.71..2.12 in 0.00..7.49)
+  [PASS] laterally centred  (offset 0.000 m)
+  [PASS] upstream margin follows the class profile  (13.83 m vs 13.83 m)
+  [PASS] wake has more room than the inlet  (downstream 32.26 m vs upstream 13.83 m)
+  [PASS] waterline sits on the tunnel floor  (waterline 0.000 m, floor 0.000 m)
+  [PASS] submerged hull is below the domain  (keel -0.707 m)
+  [PASS] simulation starts after the fit
+  measured: frontal 2.801 m², planform 13.173 m², reference 2.801 m² (FrontalSilhouette), blockage 3.46 %
+  [PASS] frontal area measured
+  [PASS] planform area measured
+  [PASS] blockage under the wind-tunnel guidance  (3.46 %)
+  [PASS] blockage close to the auto-fit target  (3.46 % vs target 5.0 %)
+  [PASS] reference-area convention follows the class  (FrontalSilhouette vs FrontalSilhouette)
+  [PASS] reference area is the one the convention names
+
+--- Boat as Watercraft (SubmergedHull) ---
+  [PASS] fit produced a plan
+  tunnel 59.92×14.14×10.74 m · Ultra (384×91×69, 156 mm cells, 2.4M cells, 0.3 GB) · 59 cells across the body · blockage ≈ 2.2 % · OpenFloor · FreshWater
+  [PASS] ground boundary matches the class  (OpenFloor vs OpenFloor)
+  [PASS] wheel rotation matches the class  (False (wheels 0))
+  [PASS] working fluid matches the class  (FreshWater vs FreshWater)
+  [PASS] grid fits the memory budget  (0.26 GB of 1.00 GB)
+  [PASS] grid is under the cell guard  (2,411,136 cells)
+  [PASS] body is resolved by at least 16 cells  (59 cells across 9.22 m)
+  [PASS] body is inside the domain streamwise  (x -13.13..-3.91 in -26.96..32.96)
+  [PASS] body is inside the domain laterally  (z -5.07..-2.93 in -9.38..1.38)
+  [PASS] body is inside the domain vertically  (y 5.69..8.51 in 0.00..14.20)
+  [PASS] laterally centred  (offset 0.000 m)
+  [PASS] upstream margin follows the class profile  (13.83 m vs 13.83 m)
+  [PASS] wake has more room than the inlet  (downstream 36.87 m vs upstream 13.83 m)
+  [PASS] body is centred in the domain cross-section  (offset 0.000 m)
+  [PASS] simulation starts after the fit
+  measured: frontal 3.822 m², planform 15.801 m², reference 3.822 m² (FrontalSilhouette), blockage 2.50 %
+  [PASS] frontal area measured
+  [PASS] planform area measured
+  [PASS] blockage under the wind-tunnel guidance  (2.50 %)
+  [PASS] blockage close to the auto-fit target  (2.50 % vs target 5.0 %)
+  [PASS] reference-area convention follows the class  (FrontalSilhouette vs FrontalSilhouette)
+  [PASS] reference area is the one the convention names
+
+--- locked cell size across two differently-sized vehicles ---
+  [PASS] fit succeeded for Range Rover Sport SVR
+  Range Rover Sport SVR: tunnel 29.2 m, 325 streamwise cells, 89.9 mm cells
+  [PASS] fit succeeded for Molnia Futuristic Racer
+  Molnia Futuristic Racer: tunnel 51.8 m, 576 streamwise cells, 90.0 mm cells
+  [PASS] tunnels really are different lengths  (29.2 m vs 51.8 m)
+  [PASS] streamwise cell counts differ (the tier could not have done this)  (325 vs 576)
+  [PASS] both land on the same cell size  (89.94 mm vs 89.96 mm (0.01 % apart))
+  [PASS] and on the size that was asked for  (89.94 mm vs 90 mm requested)
+
+--- angle-of-attack sign convention ---
+  [PASS] session records the real area convention under the SAE area lock  (area locked=True, recorded=Planform)
+  [PASS] session uses the vehicle's display name  (GameObject 'Alpha probe' recorded as 'Alpha Probe Mk II')
+  [PASS] an unnamed vehicle still identifies itself
+  nose height 2.000 m → 2.345 m at alpha +10°
+  [PASS] positive angle of attack raises the nose  (2.000 → 2.345)
+
+AUTO-FIT TESTS: PASS (125 checks)

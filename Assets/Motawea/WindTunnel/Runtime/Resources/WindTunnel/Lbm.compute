@@ -1,0 +1,581 @@
+// Wind Tunnel lattice-Boltzmann solver.
+// D3Q19, TRT collision (odd modes at omega- = 1, see below) + WALE LES, fused collide-stream
+// (pull scheme), half-way bounce-back with moving walls (belt ground / rotating
+// wheels), momentum-exchange force + moment accumulation into fixed-point atomics.
+// Lattice storage is packed FP16 in deviation form (see "FP16 lattice storage");
+// all arithmetic is float.
+//
+// TRT instead of BGK because BGK needs tau well above 0.5 to stay stable, which
+// caps the resolved Reynolds number around 10^3 — smooth bluff bodies then
+// separate laminar-early and read several times their real drag. TRT stays
+// stable with the molecular viscosity orders of magnitude lower; the WALE eddy
+// viscosity carries the sub-grid stresses and provides the numerical damping
+// where the flow actually has structure.
+//
+// Lattice conventions: streamwise +X (inlet at x=0), up +Y, lateral +Z. rho0 = 1.
+
+#pragma kernel LbmInit
+#pragma kernel LbmStep
+#pragma kernel LbmBlendDisplay
+// The nuT diagnostics tap lives behind a keyword, not a uniform branch: even a
+// never-taken branch changes compiled code, which changes last-bit rounding, which
+// a chaotic wake amplifies — and the bit-exact demo gate would move on every
+// diagnostic addition. The default variant must compile identical to no tap at all.
+#pragma multi_compile _ AERO_NUT_TAP
+#pragma multi_compile _ AERO_WALL_MODEL
+
+#define CELL_FLUID    0u
+#define CELL_SOLID    1u
+#define CELL_GROUND   2u
+#define CELL_INLET    3u
+#define CELL_OUTLET   4u
+#define CELL_FARFIELD 5u
+#define CELL_WHEEL0   6u
+
+// Fixed-point scales for the force/moment atomics (see LbmSolver.cs).
+#define FORCE_SCALE  4096.0
+#define MOMENT_SCALE 256.0
+
+StructuredBuffer<uint> _Flags;
+StructuredBuffer<float> _Coverage;          // solid fraction: 0 fluid, 1 solid,
+                                            // in-between = soft voxel (sub-cell geometry)
+StructuredBuffer<float> _SurfaceFraction;   // raw sub-cell solid fraction, surviving Finalize:
+                                            // where inside a boundary cell the wall really is
+int _InterpolatedWalls;                     // 1 = Bouzidi sub-cell wall placement
+StructuredBuffer<uint> _FSrc;               // FP16 lattice storage — see the helpers below:
+RWStructuredBuffer<uint> _FDst;             // 19 dirs packed 2-per-uint, 10 uints/cell,
+                                            // each half stores the deviation f[i] − W[i]
+Texture3D<float4> _VelocityPrev;            // last step's macroscopic field, for the
+                                            // WALE velocity-gradient stencil (the RW
+                                            // velocity texture is mid-overwrite here)
+RWStructuredBuffer<int> _ForceAccum;        // Fx,Fy,Fz,Mx,My,Mz (fixed point)
+#ifdef AERO_NUT_TAP
+RWStructuredBuffer<float> _NuTOut;          // per-cell WALE nu_T (lattice) — diagnostics only
+#endif
+RWTexture3D<float4> _Velocity;              // xyz = u (lattice), w = rho
+RWTexture3D<float> _FluidMask;              // open fraction: 1 fluid, 0 solid, partial
+                                            // for soft voxels; lets samplers reconstruct
+                                            // fluid-only velocity at walls
+
+int3 _Dims;
+int _DispatchWidth;                         // threads per dispatch row: grids above
+                                            // 65535*64 cells fold onto a 2D dispatch
+float _UInlet;                              // lattice freestream speed (+X)
+float _Nu;                                  // molecular lattice viscosity (tau+ = 3nu + 0.5)
+float _LesCw;                               // WALE constant, ~0.325
+int _GroundMoving;                          // 1 = rolling road (belt at freestream)
+int _WheelsRotating;
+float3 _PivotLattice;                       // moment reference (turntable pivot)
+
+int _WheelCount;
+float4 _WheelPos[4];                        // xyz center (lattice), w radius (lattice)
+float4 _WheelAxis[4];                       // xyz spin axis (unit), w half-width
+
+static const int3 C[19] =
+{
+    int3( 0, 0, 0),
+    int3( 1, 0, 0), int3(-1, 0, 0), int3( 0, 1, 0), int3( 0,-1, 0), int3( 0, 0, 1), int3( 0, 0,-1),
+    int3( 1, 1, 0), int3(-1,-1, 0), int3( 1,-1, 0), int3(-1, 1, 0),
+    int3( 1, 0, 1), int3(-1, 0,-1), int3( 1, 0,-1), int3(-1, 0, 1),
+    int3( 0, 1, 1), int3( 0,-1,-1), int3( 0, 1,-1), int3( 0,-1, 1)
+};
+
+static const uint OPP[19] = { 0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15, 18, 17 };
+
+#define W0 (1.0 / 3.0)
+#define W1 (1.0 / 18.0)
+#define W2 (1.0 / 36.0)
+static const float W[19] =
+{
+    W0,
+    W1, W1, W1, W1, W1, W1,
+    W2, W2, W2, W2, W2, W2, W2, W2, W2, W2, W2, W2
+};
+
+uint CellIndex(int3 c) { return (uint)(c.x + _Dims.x * (c.y + _Dims.y * c.z)); }
+uint TotalCells() { return (uint)(_Dims.x * _Dims.y * _Dims.z); }
+
+int3 CellCoord(uint i)
+{
+    int x = (int)(i % (uint)_Dims.x);
+    int y = (int)((i / (uint)_Dims.x) % (uint)_Dims.y);
+    int z = (int)(i / (uint)(_Dims.x * _Dims.y));
+    return int3(x, y, z);
+}
+
+float Feq(uint i, float rho, float3 u, float usq)
+{
+    float cu = dot(float3(C[i]), u);
+    return W[i] * rho * (1.0 + 3.0 * cu + 4.5 * cu * cu - 1.5 * usq);
+}
+
+// ---------------------------------------------------------------- FP16 lattice storage
+// Distributions live in memory as 16-bit floats holding the DEVIATION from the
+// ambient equilibrium weight, f[i] − W[i], two directions per uint (dir 2k low
+// half, 2k+1 high half; direction 18 leaves its top half empty → 10 uints/cell).
+// Deviations sit 1–3 orders of magnitude below the weights, so sign, exponent
+// and the 11-bit mantissa all land on the physically meaningful part — storing
+// raw f would spend most of the mantissa re-encoding a constant. All arithmetic
+// stays float; conversion happens only at load/store. Write safety: every kernel
+// path writes all 19 directions of its own cell, so no uint is ever shared
+// between threads.
+
+float ReadF(uint dir, uint cell)
+{
+    uint w = _FSrc[(dir >> 1) * TotalCells() + cell];
+    uint h = (dir & 1u) != 0u ? (w >> 16) : (w & 0xFFFFu);
+    return f16tof32(h) + W[dir];
+}
+
+// f32tof16 rounds toward zero (D3D spec), which systematically shrinks every
+// stored deviation — a bias, not noise, and the lattice integrates biases.
+// Round to nearest instead: the truncated half and its bit-increment bracket x
+// (IEEE bit patterns are ordered by magnitude within a sign), take the closer,
+// ties to the even mantissa. NaN falls through unchanged; the divergence guard
+// owns that case.
+uint PackHalfRN(float x)
+{
+    uint h = f32tof16(x);
+    uint h2 = h + 1u;
+    float dLo = abs(x - f16tof32(h));
+    float dHi = abs(f16tof32(h2) - x);
+    if (dHi < dLo || (dHi == dLo && (h2 & 1u) == 0u))
+        h = h2;
+    return h;
+}
+
+// Freestream equilibrium for a whole cell — used by init, inlet/far-field, and
+// the divergence guard, which must all agree on the reference state.
+void StoreFreestream(uint cell)
+{
+    uint n = TotalCells();
+    float3 u = float3(_UInlet, 0, 0);
+    float usq = dot(u, u);
+    uint packed = 0u;
+    [unroll]
+    for (uint i = 0; i < 19; i++)
+    {
+        uint h = PackHalfRN(Feq(i, 1.0, u, usq) - W[i]);
+        if ((i & 1u) == 0u) packed = h;
+        else _FDst[(i >> 1) * n + cell] = packed | (h << 16);
+    }
+    _FDst[9 * n + cell] = packed;   // direction 18 rides alone in the last uint
+}
+
+bool IsBounceBack(uint t)
+{
+    return t == CELL_SOLID || t == CELL_GROUND || (t >= CELL_WHEEL0 && t <= CELL_WHEEL0 + 3u);
+}
+
+// Wall velocity (lattice units) for a bounce-back cell at lattice position p.
+float3 WallVelocity(uint t, float3 p)
+{
+    if (t == CELL_GROUND)
+        return _GroundMoving != 0 ? float3(_UInlet, 0, 0) : float3(0, 0, 0);
+
+    if (t >= CELL_WHEEL0 && t <= CELL_WHEEL0 + 3u && _WheelsRotating != 0)
+    {
+        int w = (int)(t - CELL_WHEEL0);
+        // Rolling without slip: surface speed at radius R equals freestream.
+        float omega = _UInlet / max(_WheelPos[w].w, 1.0);
+        float3 rel = p - _WheelPos[w].xyz;
+        return cross(_WheelAxis[w].xyz * omega, rel);
+    }
+    return float3(0, 0, 0);
+}
+
+// Previous-step velocity with clamped coordinates (one-sided at domain edges).
+// Bounce-back cells store their wall velocity, so a stencil arm that lands in the
+// body reads the no-slip value and the gradient becomes the wall shear — which is
+// exactly the situation the WALE operator is built to return zero for.
+float3 PrevU(int3 c)
+{
+    return _VelocityPrev[clamp(c, int3(0, 0, 0), _Dims - 1)].xyz;
+}
+
+// Rotation-rate tensor Ω from central differences of the previous step's field.
+// Only the rotation comes from finite differences: it is a large-scale quantity
+// and smooth. The strain rate is NOT taken this way — a period-2 (grid-scale)
+// oscillation cancels exactly in a central difference, so an FD-based eddy
+// viscosity is blind to the one mode it must damp. Strain comes from the
+// non-equilibrium momentum flux instead (see the WALE block in LbmStep).
+float3x3 RotationTensor(int3 c)
+{
+    float3 dx = (PrevU(c + int3(1, 0, 0)) - PrevU(c - int3(1, 0, 0))) * 0.5;
+    float3 dy = (PrevU(c + int3(0, 1, 0)) - PrevU(c - int3(0, 1, 0))) * 0.5;
+    float3 dz = (PrevU(c + int3(0, 0, 1)) - PrevU(c - int3(0, 0, 1))) * 0.5;
+
+    float a = 0.5 * (dy.x - dx.y);   // Ω_xy = ½(du/dy − dv/dx)
+    float b = 0.5 * (dz.x - dx.z);   // Ω_xz
+    float d = 0.5 * (dz.y - dy.z);   // Ω_yz
+    return float3x3(0, a, b,
+                   -a, 0, d,
+                   -b, -d, 0);
+}
+
+#ifdef AERO_WALL_MODEL
+// Friction velocity u_tau from Spalding's law of the wall, y+ = u+ + e^{-kB}·
+// (e^{ku+} − 1 − ku+ − (ku+)²/2 − (ku+)³/6), solved by Newton iteration. Valid
+// through viscous sublayer, buffer and log layer, unlike the bare log law —
+// which matters here because the first cell's y+ is not known in advance.
+// All quantities in lattice units.
+float SolveSpalding(float ut, float y, float nu)
+{
+    const float kappa = 0.41;
+    const float emkB = 0.1287;   // e^{-kappa·B}, B = 5.0
+    float utau = max(sqrt(nu * ut / max(y, 1e-6)), 1e-8);   // viscous-sublayer seed
+    [unroll]
+    for (uint i = 0; i < 4; i++)
+    {
+        float up = ut / utau;
+        float ku = min(kappa * up, 40.0);
+        float eku = exp(ku);
+        float F = up + emkB * (eku - 1.0 - ku - 0.5 * ku * ku - ku * ku * ku / 6.0)
+                - y * utau / nu;
+        float dyp_dup = 1.0 + emkB * kappa * (eku - 1.0 - ku - 0.5 * ku * ku);
+        float dF = dyp_dup * (-ut / (utau * utau)) - y / nu;   // strictly negative
+        utau = clamp(utau - F / min(dF, -1e-9), 1e-8, 0.3);
+    }
+    return utau;
+}
+#endif
+
+// Temporal EMA into the display snapshot. The field carries standing acoustic
+// (checkerboard) waves whose period is a few steps, so every Step() batch
+// catches them at a different phase — a raw copy makes surface/slice colors
+// flicker and no spatial filter can fix a temporal artifact. Averaging across
+// batches cancels the oscillation, while the wake, which evolves over many
+// batches, stays sharp. Runs once per batch, not per step.
+Texture3D<float4> _DisplaySrc;
+RWTexture3D<float4> _DisplayDst;
+float _DisplayBlend;                        // 1 = raw copy, lower = smoother
+
+[numthreads(64, 1, 1)]
+void LbmBlendDisplay(uint3 id : SV_DispatchThreadID)
+{
+    uint n = TotalCells();
+    uint cell = id.x + (uint)_DispatchWidth * id.y;
+    if (cell >= n) return;
+    int3 c = CellCoord(cell);
+    _DisplayDst[c] = lerp(_DisplayDst[c], _DisplaySrc[c], _DisplayBlend);
+}
+
+[numthreads(64, 1, 1)]
+void LbmInit(uint3 id : SV_DispatchThreadID)
+{
+    uint n = TotalCells();
+    uint cell = id.x + (uint)_DispatchWidth * id.y;
+    if (cell >= n) return;
+
+    StoreFreestream(cell);
+
+    int3 c = CellCoord(cell);
+    uint t = _Flags[cell];
+    _Velocity[c] = IsBounceBack(t) ? float4(0, 0, 0, 1) : float4(float3(_UInlet, 0, 0), 1.0);
+    _FluidMask[c] = IsBounceBack(t) ? 0.0 : saturate(1.0 - _Coverage[cell]);
+}
+
+[numthreads(64, 1, 1)]
+void LbmStep(uint3 id : SV_DispatchThreadID)
+{
+    uint n = TotalCells();
+    uint idx = id.x + (uint)_DispatchWidth * id.y;
+    if (idx >= n) return;
+    int3 c = CellCoord(idx);
+    uint type = _Flags[idx];
+
+    if (IsBounceBack(type))
+    {
+        _Velocity[c] = float4(WallVelocity(type, float3(c) + 0.5), 1.0);
+        _FluidMask[c] = 0.0;
+        return;
+    }
+    // Soft voxels: ns in (0,1) is the cell's solid fraction; the mask stores the
+    // open fraction so near-wall sampling reconstructs the pore velocity.
+    float ns = _Coverage[idx];
+    _FluidMask[c] = saturate(1.0 - ns);
+
+    float3 uIn = float3(_UInlet, 0, 0);
+
+    if (type == CELL_INLET || type == CELL_FARFIELD)
+    {
+        StoreFreestream(idx);
+        _Velocity[c] = float4(uIn, 1.0);
+        return;
+    }
+
+    if (type == CELL_OUTLET)
+    {
+        // Zero-gradient outflow: copy the upstream neighbor's post-collision state.
+        // The copy moves the packed words untouched — exact, no re-rounding.
+        uint up = CellIndex(int3(max(c.x - 1, 0), c.y, c.z));
+        [unroll]
+        for (uint k = 0; k < 10; k++)
+            _FDst[k * n + idx] = _FSrc[k * n + up];
+        float rho = 0.0;
+        float3 mom = 0.0;
+        [unroll]
+        for (uint i = 0; i < 19; i++)
+        {
+            float fi = ReadF(i, up);
+            rho += fi;
+            mom += float3(C[i]) * fi;
+        }
+        _Velocity[c] = float4(mom / max(rho, 0.05), rho);
+        return;
+    }
+
+    // ---- fluid cell: pull-stream with bounce-back, then collide ----
+
+    float f[19];
+    float3 bodyForce = 0.0;
+    float3 bodyMoment = 0.0;
+#ifdef AERO_WALL_MODEL
+    float wallDist = 1e9;                 // nearest body wall along any link (lattice)
+    float3 wallDir = float3(0, 0, 0);     // that link's direction, toward the wall
+#endif
+
+    [unroll]
+    for (uint i = 0; i < 19; i++)
+    {
+        int3 src = c - C[i];
+        uint srcIdx = CellIndex(src);
+        uint srcType = _Flags[srcIdx];
+
+        if (IsBounceBack(srcType))
+        {
+            // Bounce-back with moving-wall correction. The population that left this
+            // cell toward the wall (direction opp(i)) returns along i.
+            uint o = OPP[i];
+            float fOut = ReadF(o, idx);
+
+            // Where along the link the wall actually is, as a fraction of the distance
+            // from this cell's centre to the solid cell's centre. Half-way bounce-back
+            // assumes 0.5 always, which turns every smooth surface into a staircase of
+            // cell-sized steps. The sub-cell solid fractions locate the surface's 0.5
+            // iso-level between the two centres instead.
+            float q = 0.5;
+            if (_InterpolatedWalls != 0)
+            {
+                float sHere = _SurfaceFraction[idx];
+                float sWall = _SurfaceFraction[srcIdx];
+                float span = sWall - sHere;
+                // Degenerate when both cells report the same fraction (no gradient to
+                // read a surface position from) — fall back to half-way, never worse
+                // than today.
+                if (span > 1e-4)
+                    q = clamp((0.5 - sHere) / span, 0.02, 0.98);
+            }
+
+            float3 wallPos = float3(c) + 0.5 + q * float3(C[o]);
+            float3 uw = WallVelocity(srcType, wallPos);
+#ifdef AERO_WALL_MODEL
+            // Track the nearest piece of BODY wall (not ground) this cell can see.
+            // The model targets the vehicle surface; the floor keeps its plain
+            // treatment. (Whether Reynolds-independent bodies stay unmoved is the
+            // plate/cube gate in 2.5d — a test, not an assumption.)
+            if (srcType != CELL_GROUND)
+            {
+                float dWall = q * length(float3(C[o]));
+                if (dWall < wallDist) { wallDist = dWall; wallDir = float3(C[o]); }
+            }
+#endif
+            float fi = fOut + 6.0 * W[i] * dot(float3(C[i]), uw);
+
+            // Bouzidi interpolation (Bouzidi, Firdaouss & Lallemand 2001). At q = 1/2
+            // both branches collapse to plain bounce-back, so this is a strict
+            // generalisation of the line above.
+            if (_InterpolatedWalls != 0 && abs(q - 0.5) > 1e-3)
+            {
+                if (q < 0.5)
+                {
+                    // Wall nearer than half-way: blend with the population at the next
+                    // node AWAY from the wall, which is where the reflected population
+                    // would have come from. Only valid if that node is fluid.
+                    int3 far = c + C[i];
+                    if (all(far >= int3(0, 0, 0)) && all(far < _Dims))
+                    {
+                        uint farIdx = CellIndex(far);
+                        if (!IsBounceBack(_Flags[farIdx]))
+                            fi = 2.0 * q * fi + (1.0 - 2.0 * q) * ReadF(o, farIdx);
+                    }
+                }
+                else
+                {
+                    // Wall beyond half-way: blend the reflected population with the one
+                    // already heading this way at this node.
+                    float inv = 1.0 / (2.0 * q);
+                    fi = inv * fi + (1.0 - inv) * ReadF(i, idx);
+                }
+            }
+            f[i] = fi;
+
+            // Momentum exchange -> force on the vehicle (ground excluded).
+            // Gauge form: subtract the ambient equilibrium weight so the uniform
+            // static pressure cancels exactly — otherwise bodies touching a domain
+            // boundary (tires on the floor shell) integrate raw ambient pressure
+            // over their planform, producing huge fake vertical forces.
+            if (srcType != CELL_GROUND)
+            {
+                float3 link = float3(C[o]); // points from this cell into the wall
+                float3 dF = (fOut + fi - 2.0 * W[i]) * link;
+                bodyForce += dF;
+                bodyMoment += cross(wallPos - _PivotLattice, dF);
+            }
+        }
+        else
+        {
+            f[i] = ReadF(i, srcIdx);
+        }
+    }
+
+    float rho = 0.0;
+    float3 mom = 0.0;
+    [unroll]
+    for (uint j = 0; j < 19; j++)
+    {
+        rho += f[j];
+        mom += float3(C[j]) * f[j];
+    }
+
+    // Divergence guard: reseed the cell from freestream equilibrium.
+    if (!isfinite(rho) || rho < 0.2 || rho > 5.0)
+    {
+        StoreFreestream(idx);
+        _Velocity[c] = float4(uIn, 1.0);
+        return;
+    }
+
+    float3 u = mom / rho;
+    float usq = dot(u, u);
+
+    // Non-equilibrium momentum flux Π_neq: the local, same-step strain signal.
+    // Crucially it sees grid-scale (period-2) oscillations that cancel in any
+    // central-difference gradient — the mode the LES viscosity exists to damp.
+    float feq[19];
+    float pixx = 0, piyy = 0, pizz = 0, pixy = 0, pixz = 0, piyz = 0;
+    [unroll]
+    for (uint k = 0; k < 19; k++)
+    {
+        feq[k] = Feq(k, rho, u, usq);
+        float fneq = f[k] - feq[k];
+        float3 ck = float3(C[k]);
+        pixx += ck.x * ck.x * fneq;
+        piyy += ck.y * ck.y * fneq;
+        pizz += ck.z * ck.z * fneq;
+        pixy += ck.x * ck.y * fneq;
+        pixz += ck.x * ck.z * fneq;
+        piyz += ck.y * ck.z * fneq;
+    }
+    float3x3 Pi = float3x3(pixx, pixy, pixz,
+                           pixy, piyy, piyz,
+                           pixz, piyz, pizz);
+
+    // WALE eddy viscosity (Nicoud & Ducros) on the tensor S² + Ω², which equals
+    // the traceless symmetric square of the velocity gradient. Strain S comes
+    // from Π_neq (S = −3Π/(2ρτ⁺)), rotation Ω from finite differences. In pure
+    // shear S² and Ω² cancel, so near-wall boundary layers keep their molecular
+    // viscosity instead of being thickened into early separation — the property
+    // strain-magnitude Smagorinsky lacks. S depends on τ⁺ which depends on ν_t,
+    // so run a short fixed-point iteration (contractive: larger τ⁺ → smaller S).
+    float3x3 O = RotationTensor(c);
+    float3x3 O2 = mul(O, O);
+    float cw2 = _LesCw * _LesCw;
+    float nuT = 0.0;
+    [unroll]
+    for (uint it = 0; it < 3; it++)
+    {
+        float tauP = 3.0 * (_Nu + nuT) + 0.5;
+        float3x3 S = Pi * (-1.5 / (rho * tauP));
+        float3x3 Sd = mul(S, S) + O2;
+        float tr3 = (Sd._m00 + Sd._m11 + Sd._m22) / 3.0;
+        Sd._m00 -= tr3; Sd._m11 -= tr3; Sd._m22 -= tr3;
+
+        float SS = dot(S[0], S[0]) + dot(S[1], S[1]) + dot(S[2], S[2]);
+        float SdSd = dot(Sd[0], Sd[0]) + dot(Sd[1], Sd[1]) + dot(Sd[2], Sd[2]);
+        float num = pow(max(SdSd, 1e-24), 1.5);
+        float den = pow(max(SS, 1e-24), 2.5) + pow(max(SdSd, 1e-24), 1.25);
+        nuT = cw2 * num / max(den, 1e-20);
+    }
+
+#ifdef AERO_WALL_MODEL
+    // Wall model (Stage 2.5c prototype). 2.5a measured near-wall momentum transport
+    // dominated by SGS viscosity at ~500× molecular, burying the boundary layer. At
+    // the first fluid cell off the body, replace WALE with the eddy viscosity that
+    // reproduces Spalding's law-of-the-wall shear stress at this cell's distance:
+    // nu_w = u_tau²·y/u_t − nu, so that (nu + nu_w)·(u_t/y) = tau_w/rho.
+    if (wallDist < 1.2)   // axis links always qualify; diagonals with q ≲ 0.85
+    {
+        float3 nrm = normalize(wallDir);
+        float3 utVec = u - dot(u, nrm) * nrm;
+        float ut = length(utVec);
+        if (ut > 1e-5)
+        {
+            float yWall = max(wallDist, 0.05);
+            float utau = SolveSpalding(ut, yWall, _Nu);
+            nuT = max(utau * utau * yWall / ut - _Nu, 0.0);
+        }
+    }
+#endif
+
+    // Diagnostics tap (Stage 2.5a): the eddy viscosity is otherwise computed and
+    // discarded, leaving the solver's effective Reynolds number unmeasurable. Sits
+    // after the wall model on purpose — it reports the nu_T actually used.
+#ifdef AERO_NUT_TAP
+    _NuTOut[idx] = nuT;
+#endif
+
+    // TRT relaxation: the symmetric (even) rate carries the viscosity, molecular
+    // plus WALE eddy. The antisymmetric (odd) modes are not hydrodynamic at
+    // Navier-Stokes order; relax them fully (ω⁻ = 1) — slaving them to the magic
+    // parameter would leave ω⁻ ≈ 10⁻⁵ at this viscosity, i.e. undamped ghost
+    // modes ringing against the bounce-back walls.
+    float nu = _Nu + nuT;
+    float omegaP = 1.0 / (3.0 * nu + 0.5);
+    const float omegaM = 1.0;
+
+    // Soft voxels: gray-LBM partial bounce-back. A cell holding sub-cell geometry
+    // reflects fraction ns of its populations each step, so thin plates resist
+    // through-flow while sub-cell gaps pass a damped jet instead of sealing shut.
+    // The blend swaps opposite populations, so mass is conserved exactly.
+    uint packed = 0u;
+    [unroll]
+    for (uint m = 0; m < 19; m++)
+    {
+        uint o = OPP[m];
+        float fP = 0.5 * (f[m] + f[o]);
+        float fM = 0.5 * (f[m] - f[o]);
+        float feqP = 0.5 * (feq[m] + feq[o]);
+        float feqM = 0.5 * (feq[m] - feq[o]);
+        float fPost = f[m] - omegaP * (fP - feqP) - omegaM * (fM - feqM);
+        if (ns > 0.0)
+            fPost = lerp(fPost, f[o], ns);
+        uint h = PackHalfRN(fPost - W[m]);
+        if ((m & 1u) == 0u) packed = h;
+        else _FDst[(m >> 1) * n + idx] = packed | (h << 16);
+    }
+    _FDst[9 * n + idx] = packed;   // direction 18 rides alone in the last uint
+
+    if (ns > 0.0)
+    {
+        // Momentum removed from the fluid by the partial reflection: the blend
+        // takes cell momentum from +mom to (1-2ns)*mom, so the body receives
+        // 2*ns*mom (same sign convention as the wall momentum exchange above).
+        float3 dF = 2.0 * ns * mom;
+        bodyForce += dF;
+        bodyMoment += cross(float3(c) + 0.5 - _PivotLattice, dF);
+    }
+
+    _Velocity[c] = float4(u, rho);
+
+    if (any(bodyForce != 0.0) || any(bodyMoment != 0.0))
+    {
+        int dummy;
+        InterlockedAdd(_ForceAccum[0], (int)round(bodyForce.x * FORCE_SCALE), dummy);
+        InterlockedAdd(_ForceAccum[1], (int)round(bodyForce.y * FORCE_SCALE), dummy);
+        InterlockedAdd(_ForceAccum[2], (int)round(bodyForce.z * FORCE_SCALE), dummy);
+        InterlockedAdd(_ForceAccum[3], (int)round(bodyMoment.x * MOMENT_SCALE), dummy);
+        InterlockedAdd(_ForceAccum[4], (int)round(bodyMoment.y * MOMENT_SCALE), dummy);
+        InterlockedAdd(_ForceAccum[5], (int)round(bodyMoment.z * MOMENT_SCALE), dummy);
+    }
+}

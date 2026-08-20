@@ -1,0 +1,34 @@
+AeroAhmedDiag — Stage 2.5a: measure the missing near-wall physics
+Ahmed 25°, 15.0 mm cells (536 streamwise), 40 m/s, soft voxels on, half-way walls
+
+  [PASS] simulation started
+grid 536×93×125, U_lattice 0.0800, nu_lattice 1.95E-006 (tau+ = 0.5000058)
+
+  [PASS] nuT capture produced data  (5948089 fluid cells)
+---- 1. effective viscosity (WALE nu_T, lattice units) ----
+  fluid cells 5,948,089, near-body fluid cells 6,248
+  nu_T mean 1.70E-003   median 1.30E-003   near-body mean 9.21E-004
+  nu_T/nu_mol: mean 871x   median 670x   near-body 473x
+  Re over body height: molecular 7.89E+005   eff (mean nu_T) 9.04E+002   eff (near-body) 1.66E+003
+  physical Re over body height at 40 m/s: 7.68E+005
+
+---- 2. flow over the 25-degree slant (u_x / U_inf, cells above the found surface) ----
+  station      x_frac   surf_y    +1 cell   +2 cells  +3 cells  +5 cells  read
+  0/8        0.00    0.308    -0.002     0.011     0.632     1.122   SEPARATED
+  1/8        0.13    0.308    -0.003     0.041     0.652     1.135   SEPARATED
+  2/8        0.25    0.293    -0.003     0.001     0.148     1.141   SEPARATED
+  3/8        0.38    0.278     0.000    -0.010    -0.018     0.765   SEPARATED
+  4/8        0.50    0.263     0.000     0.001    -0.121     0.340   SEPARATED
+  5/8        0.63    0.263     0.000    -0.020    -0.098     0.420   SEPARATED
+  6/8        0.75    0.248     0.000    -0.007    -0.056     0.100   SEPARATED
+  7/8        0.88    0.233     0.000     0.000    -0.043    -0.050   SEPARATED
+  8/8        1.00    0.233     0.000     0.001    -0.074     0.002   SEPARATED
+  [PASS] slant stations probed  (9 of 9)
+  => 9 of 9 stations read as separated at the wall
+
+---- 3. first-cell height vs boundary layer ----
+  flat-plate turbulent delta at slant start (x_run 0.84 m, Re_x 2.25E+006): 16.7 mm
+  first fluid cell centre ~7.5 mm above the wall -> y/delta ~ 0.45
+  (wall-model validity per the plan: y/delta <~ 0.2)
+
+AHMED DIAG: PASS (3 checks)

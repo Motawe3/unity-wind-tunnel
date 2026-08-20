@@ -1,0 +1,304 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2604985316968958632
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4872377598040088994}
+  - component: {fileID: 6113118787452483422}
+  m_Layer: 0
+  m_Name: FL
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4872377598040088994
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2604985316968958632}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.00821, y: 0.0016, z: 0.01442}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8930272511581352596}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6113118787452483422
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2604985316968958632}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9526519f7f2460b42a5c6dee388619ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Motawea.WindTunnel::Motawea.WindTunnel.AeroWheel
+  radius: 0.37
+  width: 0.28
+--- !u!1 &3584632692088882900
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1391434361170099933}
+  - component: {fileID: 2397202787459916449}
+  m_Layer: 0
+  m_Name: BL
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1391434361170099933
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3584632692088882900}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.00821, y: 0.0016, z: -0.01442}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8930272511581352596}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2397202787459916449
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3584632692088882900}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9526519f7f2460b42a5c6dee388619ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Motawea.WindTunnel::Motawea.WindTunnel.AeroWheel
+  radius: 0.37
+  width: 0.28
+--- !u!1 &4859155193694724837
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5307481591124478874}
+  - component: {fileID: 3480241509426916816}
+  m_Layer: 0
+  m_Name: FR
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5307481591124478874
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4859155193694724837}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.00825, y: 0.0016, z: 0.01442}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8930272511581352596}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3480241509426916816
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4859155193694724837}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9526519f7f2460b42a5c6dee388619ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Motawea.WindTunnel::Motawea.WindTunnel.AeroWheel
+  radius: 0.37
+  width: 0.28
+--- !u!1 &4870363600706156688
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3018255321432001720}
+  - component: {fileID: 5224328597870996246}
+  m_Layer: 0
+  m_Name: BR
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3018255321432001720
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4870363600706156688}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.00825, y: 0.0016, z: -0.01442}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8930272511581352596}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5224328597870996246
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4870363600706156688}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9526519f7f2460b42a5c6dee388619ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Motawea.WindTunnel::Motawea.WindTunnel.AeroWheel
+  radius: 0.37
+  width: 0.28
+--- !u!1001 &1209345804209248075
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -1502295648848992801, guid: 89fc8c46bd90d2c469210d1fdcb7e606, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: -1502295648848992801, guid: 89fc8c46bd90d2c469210d1fdcb7e606, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: -1502295648848992801, guid: 89fc8c46bd90d2c469210d1fdcb7e606, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: -1502295648848992801, guid: 89fc8c46bd90d2c469210d1fdcb7e606, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -1502295648848992801, guid: 89fc8c46bd90d2c469210d1fdcb7e606, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.226
+      objectReference: {fileID: 0}
+    - target: {fileID: -1502295648848992801, guid: 89fc8c46bd90d2c469210d1fdcb7e606, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -1502295648848992801, guid: 89fc8c46bd90d2c469210d1fdcb7e606, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: -1502295648848992801, guid: 89fc8c46bd90d2c469210d1fdcb7e606, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -1502295648848992801, guid: 89fc8c46bd90d2c469210d1fdcb7e606, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: -1502295648848992801, guid: 89fc8c46bd90d2c469210d1fdcb7e606, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -1502295648848992801, guid: 89fc8c46bd90d2c469210d1fdcb7e606, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -1502295648848992801, guid: 89fc8c46bd90d2c469210d1fdcb7e606, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -90
+      objectReference: {fileID: 0}
+    - target: {fileID: -1502295648848992801, guid: 89fc8c46bd90d2c469210d1fdcb7e606, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 991414417681007618, guid: 89fc8c46bd90d2c469210d1fdcb7e606, type: 3}
+      propertyPath: m_Name
+      value: range-rover-sport-svr-2022
+      objectReference: {fileID: 0}
+    - target: {fileID: 991414417681007618, guid: 89fc8c46bd90d2c469210d1fdcb7e606, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -1502295648848992801, guid: 89fc8c46bd90d2c469210d1fdcb7e606, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5307481591124478874}
+    - targetCorrespondingSourceObject: {fileID: -1502295648848992801, guid: 89fc8c46bd90d2c469210d1fdcb7e606, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3018255321432001720}
+    - targetCorrespondingSourceObject: {fileID: -1502295648848992801, guid: 89fc8c46bd90d2c469210d1fdcb7e606, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4872377598040088994}
+    - targetCorrespondingSourceObject: {fileID: -1502295648848992801, guid: 89fc8c46bd90d2c469210d1fdcb7e606, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1391434361170099933}
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 991414417681007618, guid: 89fc8c46bd90d2c469210d1fdcb7e606, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1857631209059547113}
+  m_SourcePrefab: {fileID: -9137962142385034750, guid: 89fc8c46bd90d2c469210d1fdcb7e606, type: 3}
+--- !u!1 &2092559404381737801 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 991414417681007618, guid: 89fc8c46bd90d2c469210d1fdcb7e606, type: 3}
+  m_PrefabInstance: {fileID: 1209345804209248075}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1857631209059547113
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2092559404381737801}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab1e2acab88933548b52924b3d0c468c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Motawea.WindTunnel::Motawea.WindTunnel.AeroVehicle
+  displayName: Range Rover Sport SVR
+  vehicleClass: 0
+  watercraftMode: 0
+  waterlineFromKeelM: 0
+  waterlineMarker: {fileID: 0}
+  referenceAreaMode: 0
+  referenceAreaOverride: 0
+  turntablePivot: {fileID: 0}
+--- !u!4 &8930272511581352596 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -1502295648848992801, guid: 89fc8c46bd90d2c469210d1fdcb7e606, type: 3}
+  m_PrefabInstance: {fileID: 1209345804209248075}
+  m_PrefabAsset: {fileID: 0}

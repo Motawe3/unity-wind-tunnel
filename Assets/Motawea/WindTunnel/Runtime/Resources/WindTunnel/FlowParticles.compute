@@ -1,0 +1,161 @@
+// Wind Tunnel smoke-particle advection: massless tracers advected through the solved
+// LBM velocity field (RK2 midpoint), seeded from a rectangular rake like a real
+// wind-tunnel smoke wand. Positions live in lattice space.
+
+#pragma kernel ParticlesInit
+#pragma kernel ParticlesUpdate
+
+struct FlowParticle
+{
+    float3 pos;    // lattice space
+    float life;    // remaining life in solver steps
+    float3 vel;    // last sampled lattice velocity
+    float maxLife;
+    float disturb; // peak speed deficit below freestream over this life (0..1)
+};
+
+RWStructuredBuffer<FlowParticle> _Particles;
+// Trail history ring: _TrailPoints entries per particle.
+// xyz = lattice position, w = local speed (lattice); w < 0 marks "not emitted yet".
+RWStructuredBuffer<float4> _Trail;
+Texture3D<float4> _VelocityTex;
+Texture3D<float> _FluidMask;    // open fraction: 1 fluid, 0 solid, partial = soft voxel
+SamplerState sampler_VelocityTex;
+
+int _TrailPoints;
+int _TrailHead;
+
+int _ParticleCount;
+float3 _Dims;
+float _StepsThisTick;      // solver steps advanced since last particle update
+float _LifeSteps;          // nominal particle lifetime in solver steps
+float _UInlet;             // freestream speed, lattice units (flow along +X)
+uint _FrameSeed;
+
+float3 _RakeOrigin;        // lattice space rake corner
+float3 _RakeRight;         // lattice space rake edge (full width)
+float3 _RakeUp;            // lattice space rake edge (full height)
+
+uint WangHash(uint s)
+{
+    s = (s ^ 61u) ^ (s >> 16);
+    s *= 9u;
+    s = s ^ (s >> 4);
+    s *= 0x27d4eb2du;
+    s = s ^ (s >> 15);
+    return s;
+}
+
+float Rand01(inout uint state)
+{
+    state = WangHash(state);
+    return (state & 0x00ffffffu) / 16777216.0;
+}
+
+float3 SampleVelocity(float3 p)
+{
+    float3 uvw = p / _Dims;
+    float3 u = _VelocityTex.SampleLevel(sampler_VelocityTex, uvw, 0).xyz;
+    // Near a wall the trilinear sample blends in the solid cells' zeros, which
+    // drags tracers to a crawl 1-2 cells off the skin. Dividing by the sampled
+    // fluid fraction reconstructs the fluid-only average, so smoke glides along
+    // the surface instead of stalling short of it. Soft-voxel cells store their
+    // open fraction here, so the same division recovers the pore velocity and
+    // tracers accelerate through sub-cell gaps. The floor caps amplification
+    // inside the dilated solid margin.
+    float m = _FluidMask.SampleLevel(sampler_VelocityTex, uvw, 0);
+    return u / max(m, 0.25);
+}
+
+// Emission model: dead particles go DORMANT (negative life = remaining delay, drawn
+// fully transparent) for a random wait before re-emitting. Without this, particles
+// born together exit the outlet together — equal transit times re-synchronize the
+// population into visible waves. Uniform random delays make emission continuous,
+// like a real smoke wand.
+
+void Emit(uint id, inout FlowParticle p, inout uint rng, float dt)
+{
+    p.pos = _RakeOrigin + _RakeRight * Rand01(rng) + _RakeUp * Rand01(rng);
+    p.maxLife = _LifeSteps * (0.6 + 0.8 * Rand01(rng));
+    p.life = p.maxLife;
+    p.disturb = 0.0;
+    p.vel = SampleVelocity(p.pos);
+    // Spread emissions across the tick so coarse ticking doesn't comb the stream.
+    p.pos += p.vel * (Rand01(rng) * dt);
+
+    // Collapse the whole trail onto the spawn point so no segment stretches
+    // from the previous life's position back to the rake.
+    float spd = length(p.vel);
+    for (int t = 0; t < _TrailPoints; t++)
+        _Trail[id * (uint)_TrailPoints + (uint)t] = float4(p.pos, spd);
+}
+
+void Sleep(inout FlowParticle p, inout uint rng, float delaySteps)
+{
+    p.pos = _RakeOrigin + 0.5 * (_RakeRight + _RakeUp);
+    p.vel = float3(0, 0, 0);
+    p.life = -Rand01(rng) * max(delaySteps, 1.0);
+}
+
+[numthreads(64, 1, 1)]
+void ParticlesInit(uint3 id : SV_DispatchThreadID)
+{
+    if ((int)id.x >= _ParticleCount) return;
+    uint rng = WangHash(id.x * 747796405u + _FrameSeed);
+    FlowParticle p = (FlowParticle)0;
+    p.maxLife = _LifeSteps;
+    // Everyone starts dormant with a delay spread over a full lifetime: the rake
+    // ramps up smoothly instead of releasing one giant sheet.
+    Sleep(p, rng, _LifeSteps);
+    _Particles[id.x] = p;
+
+    for (int t = 0; t < _TrailPoints; t++)
+        _Trail[id.x * (uint)_TrailPoints + (uint)t] = float4(p.pos, -1.0);
+}
+
+[numthreads(64, 1, 1)]
+void ParticlesUpdate(uint3 id : SV_DispatchThreadID)
+{
+    if ((int)id.x >= _ParticleCount) return;
+    FlowParticle p = _Particles[id.x];
+    uint rng = WangHash(id.x * 915488749u + _FrameSeed);
+    float dt = _StepsThisTick;
+
+    // Dormant: count the delay down, then emit.
+    if (p.life <= 0.0)
+    {
+        p.life += dt;
+        if (p.life >= 0.0)
+            Emit(id.x, p, rng, dt);
+        _Particles[id.x] = p;
+        return;
+    }
+
+    // RK2 midpoint advection over the solver steps advanced this tick.
+    float3 u1 = SampleVelocity(p.pos);
+    float3 mid = p.pos + 0.5 * dt * u1;
+    float3 u2 = SampleVelocity(mid);
+    p.pos += dt * u2;
+    p.vel = u2;
+    p.life -= dt;
+
+    // Latch the peak speed DEFICIT below freestream — the quantity the color ramp
+    // paints blue. Only flow that met the body ever slows down (stagnation,
+    // boundary layer, wake); the undisturbed outer mass is mildly ACCELERATED by
+    // blockage and so never registers. Latching keeps a tracer visible for the
+    // rest of its life once it has interacted.
+    float deficit = 1.0 - length(u2) / max(_UInlet, 1e-5);
+    p.disturb = max(p.disturb, deficit);
+
+    // Record this tick's position in the trail ring.
+    _Trail[id.x * (uint)_TrailPoints + (uint)_TrailHead] = float4(p.pos, length(u2));
+
+    bool outside = any(p.pos < 1.0) || any(p.pos > _Dims - 1.0);
+    // Stagnant tracers (parked inside the body or a dead zone) get recycled early.
+    bool stagnant = dot(u2, u2) < 1e-8 && p.life < p.maxLife * 0.9;
+
+    if (p.life <= 0.0 || outside || stagnant)
+        Sleep(p, rng, 0.5 * _LifeSteps);
+
+    _Particles[id.x] = p;
+}

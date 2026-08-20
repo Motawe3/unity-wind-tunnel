@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:UXML
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ui="UnityEngine.UIElements"
+    xsi:noNamespaceSchemaLocation="../UIElementsSchema/UIElements.xsd"
+>
+    <Style src="SimulationScene.uss" />
+
+    <ui:VisualElement name="hud-root" class="hud-root" picking-mode="Ignore">
+
+        <!-- ================= LEFT: simulation data + run control ================= -->
+        <ui:VisualElement name="panel-data" class="panel panel-left">
+
+            <ui:Button name="expand-data" text="&gt;" class="expand-tab" />
+            <ui:VisualElement class="header">
+                <ui:VisualElement class="header-title-row">
+                    <ui:Label text="WINDTUNNEL" class="brand" />
+                    <ui:VisualElement class="header-status">
+                        <ui:VisualElement name="status-led" class="led" />
+                        <ui:Label name="status-text" text="STANDBY" class="status-text" />
+                        <ui:Button name="collapse-data" text="&lt;" class="collapse-btn" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:Label text="VIRTUAL WIND TUNNEL — BY MOTAWEA" class="brand-sub" />
+            </ui:VisualElement>
+            <ui:VisualElement class="hairline" />
+
+            <ui:ScrollView class="body-scroll">
+
+                <ui:VisualElement class="card">
+                <ui:VisualElement class="section-title-row">
+                    <ui:Label text="LIVE TELEMETRY" class="section-title" />
+                    <ui:Label name="vehicle-name" text="—" class="section-title-aux" />
+                </ui:VisualElement>
+                <ui:VisualElement class="metrics-grid">
+                    <ui:VisualElement class="tile">
+                        <ui:Label name="m-cd" text="—" class="tile-value accent" />
+                        <ui:Label text="CD" class="tile-caption" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="tile">
+                        <ui:Label name="m-cda" text="—" class="tile-value" />
+                        <ui:Label text="CDA M²" class="tile-caption" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="tile">
+                        <ui:Label name="m-clf" text="—" class="tile-value" />
+                        <ui:Label text="CL FRONT" class="tile-caption" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="tile">
+                        <ui:Label name="m-clr" text="—" class="tile-value" />
+                        <ui:Label text="CL REAR" class="tile-caption" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="tile">
+                        <ui:Label name="m-cy" text="—" class="tile-value" />
+                        <ui:Label text="CY" class="tile-caption" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="tile">
+                        <ui:Label name="m-drag" text="—" class="tile-value" />
+                        <ui:Label text="DRAG N" class="tile-caption" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="tile">
+                        <ui:Label name="m-power" text="—" class="tile-value" />
+                        <ui:Label text="POWER KW" class="tile-caption" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="tile">
+                        <ui:Label name="m-wind" text="—" class="tile-value" />
+                        <ui:Label text="WIND KM/H" class="tile-caption" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:Label name="grid-info" text="" class="fine-print" />
+                </ui:VisualElement>
+
+                <ui:VisualElement class="card">
+                <ui:VisualElement class="section-title-row">
+                    <ui:Label text="CD CONVERGENCE" class="section-title" />
+                    <ui:Label name="cv-text" text="" class="section-title-aux" />
+                </ui:VisualElement>
+                <ui:VisualElement name="chart-host" class="chart-host" />
+                </ui:VisualElement>
+
+                <ui:VisualElement class="card">
+                <ui:Label text="TUNNEL CONTROL" class="section-title" />
+                <ui:VisualElement class="wind-row">
+                    <ui:Slider name="wind-slider" label="WIND" low-value="30" high-value="250" value="108" class="aero-slider wind-slider" />
+                    <ui:Label name="wind-value" text="108 KM/H" class="wind-value" />
+                </ui:VisualElement>
+                <ui:SliderInt name="sim-steps" label="SIM SPEED" low-value="1" high-value="128" value="16" class="aero-slider" />
+                <ui:DropdownField name="tunnel-res" label="RESOLUTION" class="aero-slider aero-dropdown" />
+                <ui:VisualElement class="btn-row">
+                    <ui:Button name="btn-pause" text="PAUSE" class="btn btn-secondary" />
+                    <ui:Button name="btn-reset" text="RESET FLOW" class="btn btn-secondary" />
+                    <ui:Button name="btn-clear" text="CLEAR SMOKE" class="btn btn-secondary" />
+                </ui:VisualElement>
+                </ui:VisualElement>
+
+                <ui:VisualElement class="card">
+                <ui:Label text="TEST" class="section-title" />
+                <ui:VisualElement class="btn-row">
+                    <ui:Button name="btn-prev-test" text="&lt;" class="btn btn-secondary test-nav" />
+                    <ui:Label name="test-name" text="—" class="test-name" />
+                    <ui:Button name="btn-next-test" text="&gt;" class="btn btn-secondary test-nav" />
+                </ui:VisualElement>
+                <ui:VisualElement name="test-progress" class="test-progress">
+                    <ui:VisualElement name="test-progress-fill" class="test-progress-fill" />
+                </ui:VisualElement>
+                <ui:Label name="test-status" text="—" class="fine-print" />
+                <ui:Button name="btn-run" text="RUN TEST" class="btn-run" />
+                <ui:VisualElement class="btn-row">
+                    <ui:Button name="btn-abort" text="ABORT" class="btn btn-secondary" />
+                    <ui:Button name="btn-export" text="EXPORT REPORT" class="btn btn-secondary" />
+                </ui:VisualElement>
+                <ui:VisualElement class="btn-row">
+                    <ui:Button name="btn-compare" text="COMPARE RESULTS" class="btn btn-secondary" />
+                    <ui:Button name="btn-open-reports" text="OPEN FOLDER" class="btn btn-secondary" />
+                </ui:VisualElement>
+                </ui:VisualElement>
+
+            </ui:ScrollView>
+
+            <ui:VisualElement class="hairline" />
+            <ui:Label text="COMPARATIVE ESTIMATES — NOT CERTIFICATION CFD" class="footer-note" />
+        </ui:VisualElement>
+
+        <!-- ================= RIGHT: visuals + particle controls ================= -->
+        <ui:VisualElement name="panel-visuals" class="panel panel-right">
+
+            <ui:Button name="expand-visuals" text="&lt;" class="expand-tab" />
+            <ui:VisualElement class="header">
+                <ui:VisualElement class="header-title-row">
+                    <ui:Label text="VISUALS" class="brand" />
+                    <ui:Button name="collapse-visuals" text="&gt;" class="collapse-btn" />
+                </ui:VisualElement>
+                <ui:Label text="FLOW SECTION · SMOKE · TRACERS" class="brand-sub" />
+            </ui:VisualElement>
+            <ui:VisualElement class="hairline" />
+
+            <ui:ScrollView class="body-scroll">
+
+                <ui:VisualElement class="card">
+                <ui:Label text="FLOW SECTION — SCANNER" class="section-title" />
+                <ui:VisualElement name="slice-frame" class="slice-frame">
+                    <ui:VisualElement name="slice-image" class="slice-image" />
+                    <ui:VisualElement class="corner corner-tl" />
+                    <ui:VisualElement class="corner corner-tr" />
+                    <ui:VisualElement class="corner corner-bl" />
+                    <ui:VisualElement class="corner corner-br" />
+                </ui:VisualElement>
+                <ui:VisualElement class="legend-row">
+                    <ui:Label name="legend-min" text="0" class="legend-label" />
+                    <ui:VisualElement name="legend-bar" class="legend-bar" />
+                    <ui:Label name="legend-max" text="1.6× V∞" class="legend-label legend-label-right" />
+                </ui:VisualElement>
+                <ui:VisualElement class="btn-row">
+                    <ui:Button name="slice-mode-speed" text="SPEED" class="btn seg-btn seg-active" />
+                    <ui:Button name="slice-mode-pressure" text="PRESSURE" class="btn seg-btn" />
+                </ui:VisualElement>
+                <ui:Slider name="slice-pos" label="POSITION" low-value="0" high-value="1" value="0.5" class="aero-slider" />
+                <ui:Slider name="slice-opacity" label="PLANE OPACITY" low-value="0" high-value="1" value="0.85" class="aero-slider" />
+                </ui:VisualElement>
+
+                <ui:VisualElement class="card">
+                <ui:Label text="VEHICLE SURFACE" class="section-title" />
+                <ui:VisualElement class="btn-row">
+                    <ui:Button name="heat-off" text="OFF" class="btn seg-btn seg-active" />
+                    <ui:Button name="heat-pressure" text="PRESSURE" class="btn seg-btn" />
+                    <ui:Button name="heat-shear" text="SHEAR" class="btn seg-btn" />
+                    <ui:Button name="heat-speed" text="SPEED" class="btn seg-btn" />
+                </ui:VisualElement>
+                <ui:Slider name="heat-cp-range" label="CP RANGE" low-value="0.2" high-value="3" value="1" class="aero-slider" />
+                <ui:Slider name="heat-shear-range" label="SHEAR RANGE" low-value="0.2" high-value="2" value="1.2" class="aero-slider" />
+                </ui:VisualElement>
+
+                <ui:VisualElement class="card">
+                <ui:Label text="SMOKE &amp; TRACERS" class="section-title" />
+                <ui:SliderInt name="p-count" label="COUNT" low-value="4096" high-value="262144" value="65536" class="aero-slider" />
+                <ui:Slider name="p-size" label="SIZE" low-value="0.001" high-value="0.15" value="0.03" class="aero-slider" />
+                <ui:SliderInt name="p-trail" label="TRAIL" low-value="1" high-value="32" value="12" class="aero-slider" />
+                <ui:Slider name="p-spacing" label="TRAIL GAP" low-value="2" high-value="64" value="16" class="aero-slider" />
+                <ui:Slider name="p-speed" label="PLAYBACK" low-value="0.05" high-value="1" value="1" class="aero-slider" />
+                <ui:Slider name="p-glow" label="INTENSITY" low-value="0.05" high-value="2" value="0.8" class="aero-slider" />
+                <ui:Slider name="p-contrast" label="DEPTH CONTRAST" low-value="0" high-value="1" value="0" class="aero-slider" />
+
+                <ui:Label text="COLOR RAMP" class="field-caption" />
+                <ui:VisualElement class="btn-row">
+                    <ui:Button name="ramp-ice" text="ICE / EMBER" class="btn seg-btn seg-active" />
+                    <ui:Button name="ramp-thermal" text="THERMAL" class="btn seg-btn" />
+                    <ui:Button name="ramp-petrol" text="PETROL" class="btn seg-btn" />
+                    <ui:Button name="ramp-mono" text="MONO" class="btn seg-btn" />
+                </ui:VisualElement>
+                </ui:VisualElement>
+
+            </ui:ScrollView>
+        </ui:VisualElement>
+
+        <!-- Top-center debug stats (F2), hidden by default -->
+        <ui:VisualElement name="debug-bar" class="debug-bar" picking-mode="Ignore">
+            <ui:Label name="debug-text" text="" class="debug-text" picking-mode="Ignore" />
+        </ui:VisualElement>
+
+        <!-- Bottom-center heatmap color key: shown only while a surface heatmap is active -->
+        <ui:VisualElement name="heatmap-key" class="heatmap-key" picking-mode="Ignore">
+            <ui:VisualElement class="heatmap-key-box" picking-mode="Ignore">
+                <ui:Label name="heatmap-key-title" text="SURFACE PRESSURE" class="heatmap-key-title" picking-mode="Ignore" />
+                <ui:VisualElement class="heatmap-key-strip-row" picking-mode="Ignore">
+                    <ui:Label name="heatmap-key-min" text="" class="heatmap-key-label" picking-mode="Ignore" />
+                    <ui:VisualElement name="heatmap-key-gradient" class="heatmap-key-gradient" picking-mode="Ignore" />
+                    <ui:Label name="heatmap-key-max" text="" class="heatmap-key-label heatmap-key-label-right" picking-mode="Ignore" />
+                </ui:VisualElement>
+                <ui:Label name="heatmap-key-desc" text="" class="heatmap-key-desc" picking-mode="Ignore" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <!-- Bottom-center hotkey / mouse-lock hint -->
+        <ui:VisualElement name="hint-bar" class="hint-bar" picking-mode="Ignore">
+            <ui:Label name="hint-text" text="MMB LOCK MOUSE · RMB HOLD FLY · SHIFT FAST · SPACE RUN/PAUSE · C SCREENSHOT" class="hint-text" picking-mode="Ignore" />
+        </ui:VisualElement>
+
+    </ui:VisualElement>
+</ui:UXML>

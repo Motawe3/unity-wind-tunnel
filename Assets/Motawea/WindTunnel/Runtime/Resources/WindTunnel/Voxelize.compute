@@ -1,0 +1,539 @@
+// Wind Tunnel voxelization pipeline:
+//   Clear -> RasterizeTriangles (conservative surface, tri-box SAT)
+//   -> SeedOutside -> FloodStep xN (marks air reachable from the domain boundary)
+//   -> Finalize (interior = solid, tag wheels + boundary planes) -> ComputeStats.
+// Flood fill makes the pipeline tolerant of imperfect, non-watertight meshes.
+
+#pragma kernel Clear
+#pragma kernel RasterizeTriangles
+#pragma kernel ColumnSeal
+#pragma kernel SealVetoX
+#pragma kernel SealVetoZ
+#pragma kernel SeedOutside
+#pragma kernel FloodStep
+#pragma kernel ComputeCoverage
+#pragma kernel PorousSeed
+#pragma kernel PorousSpread
+#pragma kernel Finalize
+#pragma kernel ComputeStats
+#pragma kernel ComputeStatsPlanform
+
+// Working bits during the fill; Finalize rewrites the buffer with CELL_* values.
+#define BIT_SURFACE 1u
+#define BIT_OUTSIDE 2u
+#define BIT_FILLED  4u
+#define BIT_CONTACT 8u   // tire-contact fill: sealed like FILLED but veto-exempt
+#define BIT_REACH   16u  // porous flood: partial surface cell reachable from open air
+
+// Soft voxels: surface cells with coverage below this stay fluid and act as
+// partially open (gray-LBM drag) instead of snapping to full solid.
+#define SOLID_COVERAGE 0.999
+
+// Final cell types (shared with Lbm.compute — keep in sync with AeroCellType in C#).
+#define CELL_FLUID    0u
+#define CELL_SOLID    1u
+#define CELL_GROUND   2u
+#define CELL_INLET    3u
+#define CELL_OUTLET   4u
+#define CELL_FARFIELD 5u
+#define CELL_WHEEL0   6u   // ..9 for wheels 0..3
+
+RWStructuredBuffer<uint> _Flags;
+StructuredBuffer<float3> _Triangles;   // lattice space, 3 verts per triangle
+RWStructuredBuffer<int> _Stats;        // [0] frontal columns, [1] solid cells, [2] planform columns
+RWStructuredBuffer<uint> _SubMask;     // 3x3x3 sub-cell occupancy, 27 bits per cell
+RWStructuredBuffer<float> _Coverage;   // solid fraction 0..1 (shared with Lbm.compute)
+RWStructuredBuffer<float> _SurfaceFraction;  // raw sub-cell solid fraction, SURVIVING Finalize.
+                                             // _Coverage is clobbered to 1.0 on solid cells, which
+                                             // destroys where inside the cell the wall actually lies;
+                                             // interpolated bounce-back needs exactly that, so it is
+                                             // kept here untouched.
+
+int _TriangleCount;
+int3 _Dims;
+int _DispatchWidth;                    // threads per dispatch row: linear kernels fold
+                                       // onto a 2D dispatch past 65535 groups
+int _GroundIsWall;                     // 1 when the domain floor acts as a ground plane
+
+int _WheelCount;
+float4 _WheelPos[4];                   // xyz center (lattice), w radius (lattice)
+float4 _WheelAxis[4];                  // xyz spin axis (unit), w half-width (lattice)
+int _SealColumns;                      // 1 = seal open-bottomed shells (game models)
+int _ContactFillCells;                 // fill car-to-floor gap where the lowest surface is this close to the ground
+int _SoftVoxels;                       // 1 = sub-voxel coverage -> partially open cells
+int _SubCellRaster;                    // 1 = run the 3x3x3 sub-cell raster. Implied by soft voxels,
+                                       // and also required on its own by interpolated bounce-back,
+                                       // which needs sub-cell fractions even when soft voxels are off.
+
+uint CellIndex(int3 c) { return (uint)(c.x + _Dims.x * (c.y + _Dims.y * c.z)); }
+uint TotalCells() { return (uint)(_Dims.x * _Dims.y * _Dims.z); }
+
+int3 CellCoord(uint i)
+{
+    int x = (int)(i % (uint)_Dims.x);
+    int y = (int)((i / (uint)_Dims.x) % (uint)_Dims.y);
+    int z = (int)(i / (uint)(_Dims.x * _Dims.y));
+    return int3(x, y, z);
+}
+
+uint LinearId(uint3 id) { return id.x + (uint)_DispatchWidth * id.y; }
+
+[numthreads(64, 1, 1)]
+void Clear(uint3 id : SV_DispatchThreadID)
+{
+    uint i = LinearId(id);
+    if (i >= TotalCells()) return;
+    _Flags[i] = 0u;
+    _SubMask[i] = 0u;
+    // Explicitly cleared: a kernel that can skip writing a buffer must never leave it
+    // holding recycled VRAM (see DESIGN.md cross-file invariants).
+    _SurfaceFraction[i] = 0.0;
+}
+
+// ---------------------------------------------------------------- surface raster
+// Akenine-Moller triangle-box SAT test against a unit cell (half-size 0.5 + eps).
+
+bool AxisTest(float3 axis, float3 v0, float3 v1, float3 v2, float3 boxHalf)
+{
+    float p0 = dot(axis, v0);
+    float p1 = dot(axis, v1);
+    float p2 = dot(axis, v2);
+    float r = boxHalf.x * abs(axis.x) + boxHalf.y * abs(axis.y) + boxHalf.z * abs(axis.z);
+    float mn = min(p0, min(p1, p2));
+    float mx = max(p0, max(p1, p2));
+    return !(mn > r || mx < -r);
+}
+
+bool TriBoxOverlap(float3 center, float3 boxHalf, float3 a, float3 b, float3 c)
+{
+    float3 v0 = a - center;
+    float3 v1 = b - center;
+    float3 v2 = c - center;
+
+    // 1. box axes
+    float3 mn = min(v0, min(v1, v2));
+    float3 mx = max(v0, max(v1, v2));
+    if (any(mn > boxHalf) || any(mx < -boxHalf)) return false;
+
+    // 2. triangle normal
+    float3 e0 = v1 - v0;
+    float3 e1 = v2 - v1;
+    float3 e2 = v0 - v2;
+    float3 n = cross(e0, e1);
+    float d = dot(n, v0);
+    float r = dot(boxHalf, abs(n));
+    if (abs(d) > r) return false;
+
+    // 3. nine cross-product axes
+    if (!AxisTest(cross(float3(1, 0, 0), e0), v0, v1, v2, boxHalf)) return false;
+    if (!AxisTest(cross(float3(1, 0, 0), e1), v0, v1, v2, boxHalf)) return false;
+    if (!AxisTest(cross(float3(1, 0, 0), e2), v0, v1, v2, boxHalf)) return false;
+    if (!AxisTest(cross(float3(0, 1, 0), e0), v0, v1, v2, boxHalf)) return false;
+    if (!AxisTest(cross(float3(0, 1, 0), e1), v0, v1, v2, boxHalf)) return false;
+    if (!AxisTest(cross(float3(0, 1, 0), e2), v0, v1, v2, boxHalf)) return false;
+    if (!AxisTest(cross(float3(0, 0, 1), e0), v0, v1, v2, boxHalf)) return false;
+    if (!AxisTest(cross(float3(0, 0, 1), e1), v0, v1, v2, boxHalf)) return false;
+    if (!AxisTest(cross(float3(0, 0, 1), e2), v0, v1, v2, boxHalf)) return false;
+
+    return true;
+}
+
+[numthreads(64, 1, 1)]
+void RasterizeTriangles(uint3 id : SV_DispatchThreadID)
+{
+    uint tri = LinearId(id);
+    if ((int)tri >= _TriangleCount) return;
+
+    float3 a = _Triangles[tri * 3 + 0];
+    float3 b = _Triangles[tri * 3 + 1];
+    float3 c = _Triangles[tri * 3 + 2];
+
+    float3 bbMin = min(a, min(b, c));
+    float3 bbMax = max(a, max(b, c));
+
+    int3 lo = max(int3(floor(bbMin - 0.01)), int3(0, 0, 0));
+    int3 hi = min(int3(floor(bbMax + 0.01)), _Dims - 1);
+
+    float3 boxHalf = float3(0.5, 0.5, 0.5) + 0.01;
+
+    for (int z = lo.z; z <= hi.z; z++)
+    for (int y = lo.y; y <= hi.y; y++)
+    for (int x = lo.x; x <= hi.x; x++)
+    {
+        float3 center = float3(x, y, z) + 0.5;
+        if (TriBoxOverlap(center, boxHalf, a, b, c))
+        {
+            uint prev;
+            uint cell = CellIndex(int3(x, y, z));
+            InterlockedOr(_Flags[cell], BIT_SURFACE, prev);
+
+            // Soft voxels: also rasterize against the cell's 3x3x3 sub-boxes so
+            // ComputeCoverage can turn the hit pattern into a solid fraction.
+            if (_SubCellRaster != 0)
+            {
+                float3 subHalf = float3(1, 1, 1) / 6.0 + 0.01;
+                uint mask = 0u;
+                for (int sz = 0; sz < 3; sz++)
+                for (int sy = 0; sy < 3; sy++)
+                for (int sx = 0; sx < 3; sx++)
+                {
+                    float3 sub = float3(x, y, z) + (float3(sx, sy, sz) + 0.5) / 3.0;
+                    if (TriBoxOverlap(sub, subHalf, a, b, c))
+                        mask |= 1u << (sx + 3 * sy + 9 * sz);
+                }
+                if (mask != 0u)
+                    InterlockedOr(_SubMask[cell], mask, prev);
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------- column seal
+// Game-asset cars are usually hollow shells with no underbody: the flood fill
+// enters from below and leaves the cabin as fluid pockets, whose drifting
+// pressure exerts huge fake forces on interior panels. Seal each (x,z) column
+// between its lowest and highest surface hit; the ground-clearance gap below
+// the lowest surface stays open.
+
+[numthreads(8, 8, 1)]
+void ColumnSeal(uint3 id : SV_DispatchThreadID)
+{
+    if (_SealColumns == 0) return;
+    if ((int)id.x >= _Dims.x || (int)id.y >= _Dims.z) return;
+
+    int minY = -1, maxY = -1;
+    for (int y = 0; y < _Dims.y; y++)
+    {
+        if ((_Flags[CellIndex(int3((int)id.x, y, (int)id.y))] & BIT_SURFACE) != 0u)
+        {
+            if (minY < 0) minY = y;
+            maxY = y;
+        }
+    }
+    if (minY < 0) return;
+
+    for (int fy = minY + 1; fy < maxY; fy++)
+    {
+        uint idx = CellIndex(int3((int)id.x, fy, (int)id.y));
+        if ((_Flags[idx] & BIT_SURFACE) == 0u)
+            _Flags[idx] |= BIT_FILLED;
+    }
+
+    // Tire contact: 1-2 cell fluid slivers pinched between tire and floor develop
+    // unphysical pressures (huge fake vertical forces). Where the body's lowest
+    // surface is at contact distance, plant it on the floor, as real tires are.
+    if (_ContactFillCells > 0 && minY > 0 && minY <= _ContactFillCells)
+    {
+        for (int gy = 1; gy < minY; gy++)
+        {
+            uint gidx = CellIndex(int3((int)id.x, gy, (int)id.y));
+            if ((_Flags[gidx] & BIT_SURFACE) == 0u)
+                _Flags[gidx] |= BIT_CONTACT;   // veto-exempt: rows this low may hold no surface
+        }
+    }
+}
+
+// ---------------------------------------------------------------- seal veto
+// Column sealing closes hollow shells, but it also plugs real air gaps that sit
+// between two surfaces of the same column — the deck-to-wing gap under a rear
+// wing, the channel beneath a tail. Any sealed cell with a straight,
+// surface-free line of sight to the domain edge along ±X or ±Z is provably not
+// enclosed by the shell, so unseal it. Interior cells can't see out sideways
+// (every row through the car hits the skin first); if one is ever unsealed by
+// mistake, the flood fill still can't reach it and Finalize re-solidifies it.
+
+[numthreads(8, 8, 1)]
+void SealVetoX(uint3 id : SV_DispatchThreadID)
+{
+    if (_SealColumns == 0) return;
+    if ((int)id.x >= _Dims.y || (int)id.y >= _Dims.z) return;
+
+    int x;
+    for (x = 0; x < _Dims.x; x++)                 // clear from the inlet side
+    {
+        uint idx = CellIndex(int3(x, (int)id.x, (int)id.y));
+        if ((_Flags[idx] & BIT_SURFACE) != 0u) break;
+        _Flags[idx] &= ~BIT_FILLED;
+    }
+    for (int bx = _Dims.x - 1; bx > x; bx--)      // and from the outlet side
+    {
+        uint idx = CellIndex(int3(bx, (int)id.x, (int)id.y));
+        if ((_Flags[idx] & BIT_SURFACE) != 0u) break;
+        _Flags[idx] &= ~BIT_FILLED;
+    }
+}
+
+[numthreads(8, 8, 1)]
+void SealVetoZ(uint3 id : SV_DispatchThreadID)
+{
+    if (_SealColumns == 0) return;
+    if ((int)id.x >= _Dims.x || (int)id.y >= _Dims.y) return;
+
+    int z;
+    for (z = 0; z < _Dims.z; z++)
+    {
+        uint idx = CellIndex(int3((int)id.x, (int)id.y, z));
+        if ((_Flags[idx] & BIT_SURFACE) != 0u) break;
+        _Flags[idx] &= ~BIT_FILLED;
+    }
+    for (int bz = _Dims.z - 1; bz > z; bz--)
+    {
+        uint idx = CellIndex(int3((int)id.x, (int)id.y, bz));
+        if ((_Flags[idx] & BIT_SURFACE) != 0u) break;
+        _Flags[idx] &= ~BIT_FILLED;
+    }
+}
+
+// ---------------------------------------------------------------- flood fill
+
+[numthreads(64, 1, 1)]
+void SeedOutside(uint3 id : SV_DispatchThreadID)
+{
+    uint i = LinearId(id);
+    if (i >= TotalCells()) return;
+    int3 c = CellCoord(i);
+    bool boundary = c.x == 0 || c.y == 0 || c.z == 0 ||
+                    c.x == _Dims.x - 1 || c.y == _Dims.y - 1 || c.z == _Dims.z - 1;
+    if (boundary && (_Flags[i] & (BIT_SURFACE | BIT_FILLED | BIT_CONTACT)) == 0u)
+        _Flags[i] |= BIT_OUTSIDE;
+}
+
+[numthreads(64, 1, 1)]
+void FloodStep(uint3 id : SV_DispatchThreadID)
+{
+    uint i = LinearId(id);
+    if (i >= TotalCells()) return;
+    uint f = _Flags[i];
+    if ((f & (BIT_SURFACE | BIT_FILLED | BIT_CONTACT | BIT_OUTSIDE)) != 0u) return;
+
+    int3 c = CellCoord(i);
+    bool reach = false;
+    if (c.x > 0)            reach = reach || (_Flags[CellIndex(c + int3(-1, 0, 0))] & BIT_OUTSIDE) != 0u;
+    if (c.x < _Dims.x - 1)  reach = reach || (_Flags[CellIndex(c + int3( 1, 0, 0))] & BIT_OUTSIDE) != 0u;
+    if (c.y > 0)            reach = reach || (_Flags[CellIndex(c + int3(0, -1, 0))] & BIT_OUTSIDE) != 0u;
+    if (c.y < _Dims.y - 1)  reach = reach || (_Flags[CellIndex(c + int3(0,  1, 0))] & BIT_OUTSIDE) != 0u;
+    if (c.z > 0)            reach = reach || (_Flags[CellIndex(c + int3(0, 0, -1))] & BIT_OUTSIDE) != 0u;
+    if (c.z < _Dims.z - 1)  reach = reach || (_Flags[CellIndex(c + int3(0, 0,  1))] & BIT_OUTSIDE) != 0u;
+
+    if (reach)
+        _Flags[i] |= BIT_OUTSIDE;
+}
+
+// ---------------------------------------------------------------- coverage
+// Solid fraction per cell from the sub-cell hit mask. Sealed and enclosed
+// interior cells are fully solid; with soft voxels off, surface cells are too
+// (exact legacy behavior).
+
+[numthreads(64, 1, 1)]
+void ComputeCoverage(uint3 id : SV_DispatchThreadID)
+{
+    uint i = LinearId(id);
+    if (i >= TotalCells()) return;
+    uint f = _Flags[i];
+
+    // The true sub-cell solid fraction, computed whenever the sub-raster ran. This is
+    // the only record of WHERE inside a boundary cell the surface sits, and Finalize is
+    // about to overwrite _Coverage with 1.0 on every solid cell — so it is kept
+    // separately for interpolated bounce-back, independently of the soft-voxel toggle.
+    float subCell = _SubCellRaster != 0
+        ? max((float)countbits(_SubMask[i] & 0x07FFFFFFu) / 27.0, 1.5 / 27.0)
+        : 1.0;
+
+    float cov = 0.0;
+    float fraction = 0.0;
+    if ((f & (BIT_FILLED | BIT_CONTACT)) != 0u)
+    {
+        cov = 1.0;
+        fraction = 1.0;
+    }
+    else if ((f & BIT_SURFACE) != 0u)
+    {
+        // The floor keeps grazed cells (epsilon misses in the sub-raster) from
+        // reading as fully open even though the coarse raster hit them.
+        cov = _SoftVoxels != 0 ? subCell : 1.0;
+        fraction = subCell;
+    }
+    else if ((f & BIT_OUTSIDE) == 0u)
+    {
+        cov = 1.0;   // enclosed interior (unreachable by the flood fill)
+        fraction = 1.0;
+    }
+
+    _Coverage[i] = cov;
+    _SurfaceFraction[i] = fraction;
+}
+
+// ---------------------------------------------------------------- porous flood
+// A partial surface cell only behaves as "partially open" if open air actually
+// touches its chain of surface cells: seed on partial cells bordering fluid,
+// then spread through connected partial cells (a slot gap is a contiguous run
+// of them). Interior detail geometry (seats, engine) inside a sealed shell is
+// never reached and stays solid, so the cabin fake-pressure fix is preserved.
+
+bool IsPartialCandidate(uint i, uint f)
+{
+    return (f & BIT_SURFACE) != 0u && (f & (BIT_FILLED | BIT_CONTACT)) == 0u &&
+           _Coverage[i] < SOLID_COVERAGE;
+}
+
+[numthreads(64, 1, 1)]
+void PorousSeed(uint3 id : SV_DispatchThreadID)
+{
+    if (_SoftVoxels == 0) return;
+    uint i = LinearId(id);
+    if (i >= TotalCells()) return;
+    uint f = _Flags[i];
+    if (!IsPartialCandidate(i, f)) return;
+
+    int3 c = CellCoord(i);
+    bool open = false;
+    if (c.x > 0)            open = open || (_Flags[CellIndex(c + int3(-1, 0, 0))] & BIT_OUTSIDE) != 0u;
+    if (c.x < _Dims.x - 1)  open = open || (_Flags[CellIndex(c + int3( 1, 0, 0))] & BIT_OUTSIDE) != 0u;
+    if (c.y > 0)            open = open || (_Flags[CellIndex(c + int3(0, -1, 0))] & BIT_OUTSIDE) != 0u;
+    if (c.y < _Dims.y - 1)  open = open || (_Flags[CellIndex(c + int3(0,  1, 0))] & BIT_OUTSIDE) != 0u;
+    if (c.z > 0)            open = open || (_Flags[CellIndex(c + int3(0, 0, -1))] & BIT_OUTSIDE) != 0u;
+    if (c.z < _Dims.z - 1)  open = open || (_Flags[CellIndex(c + int3(0, 0,  1))] & BIT_OUTSIDE) != 0u;
+
+    if (open)
+        _Flags[i] = f | BIT_REACH;
+}
+
+[numthreads(64, 1, 1)]
+void PorousSpread(uint3 id : SV_DispatchThreadID)
+{
+    if (_SoftVoxels == 0) return;
+    uint i = LinearId(id);
+    if (i >= TotalCells()) return;
+    uint f = _Flags[i];
+    if ((f & BIT_REACH) != 0u || !IsPartialCandidate(i, f)) return;
+
+    int3 c = CellCoord(i);
+    bool reach = false;
+    if (c.x > 0)            reach = reach || (_Flags[CellIndex(c + int3(-1, 0, 0))] & BIT_REACH) != 0u;
+    if (c.x < _Dims.x - 1)  reach = reach || (_Flags[CellIndex(c + int3( 1, 0, 0))] & BIT_REACH) != 0u;
+    if (c.y > 0)            reach = reach || (_Flags[CellIndex(c + int3(0, -1, 0))] & BIT_REACH) != 0u;
+    if (c.y < _Dims.y - 1)  reach = reach || (_Flags[CellIndex(c + int3(0,  1, 0))] & BIT_REACH) != 0u;
+    if (c.z > 0)            reach = reach || (_Flags[CellIndex(c + int3(0, 0, -1))] & BIT_REACH) != 0u;
+    if (c.z < _Dims.z - 1)  reach = reach || (_Flags[CellIndex(c + int3(0, 0,  1))] & BIT_REACH) != 0u;
+
+    if (reach)
+        _Flags[i] = f | BIT_REACH;
+}
+
+// ---------------------------------------------------------------- finalize
+
+bool InsideWheel(int w, float3 p)
+{
+    float3 rel = p - _WheelPos[w].xyz;
+    float axial = dot(rel, _WheelAxis[w].xyz);
+    if (abs(axial) > _WheelAxis[w].w) return false;
+    float3 radial = rel - axial * _WheelAxis[w].xyz;
+    return dot(radial, radial) <= _WheelPos[w].w * _WheelPos[w].w;
+}
+
+[numthreads(64, 1, 1)]
+void Finalize(uint3 id : SV_DispatchThreadID)
+{
+    uint i = LinearId(id);
+    if (i >= TotalCells()) return;
+    int3 c = CellCoord(i);
+    uint f = _Flags[i];
+    float cov = _Coverage[i];
+
+    // Coverage > 0 marks surface, column-sealed, and interior (unreachable) cells.
+    // Partial surface cells the porous flood reached stay FLUID: the solver applies
+    // their coverage as gray-LBM drag instead of a hard wall.
+    bool partial = _SoftVoxels != 0 && cov > 0.0 && cov < SOLID_COVERAGE &&
+                   (f & BIT_REACH) != 0u;
+    bool solid = cov > 0.0 && !partial;
+
+    uint type = solid ? CELL_SOLID : CELL_FLUID;
+
+    if (cov > 0.0)
+    {
+        float3 p = float3(c) + 0.5;
+        for (int w = 0; w < _WheelCount; w++)
+        {
+            if (InsideWheel(w, p))
+            {
+                // Wheels stay fully solid so the rotating-wall BC covers the tire.
+                type = CELL_WHEEL0 + (uint)w;
+                partial = false;
+                solid = true;
+                break;
+            }
+        }
+    }
+
+    if (!solid)
+    {
+        // Boundary shell (solids keep priority so a car resting on the floor stays
+        // solid). The shell also overrides partial cells: a fluid-path cell on the
+        // domain edge would pull-stream from out-of-bounds neighbors.
+        if (c.x == 0)                { type = CELL_INLET;  partial = false; }
+        else if (c.x == _Dims.x - 1) { type = CELL_OUTLET; partial = false; }
+        else if (c.y == 0)
+        {
+            type = _GroundIsWall != 0 ? CELL_GROUND : CELL_FARFIELD;
+            partial = false;
+        }
+        else if (c.y == _Dims.y - 1 || c.z == 0 || c.z == _Dims.z - 1)
+        {
+            type = CELL_FARFIELD;
+            partial = false;
+        }
+    }
+
+    _Coverage[i] = solid ? 1.0 : (partial ? cov : 0.0);
+    _Flags[i] = type;
+}
+
+// ---------------------------------------------------------------- stats
+// One thread per (y,z) column: frontal-silhouette column count + solid cell count.
+
+[numthreads(8, 8, 1)]
+void ComputeStats(uint3 id : SV_DispatchThreadID)
+{
+    if ((int)id.x >= _Dims.y || (int)id.y >= _Dims.z) return;
+
+    int solids = 0;
+    bool anySolid = false;
+    for (int x = 0; x < _Dims.x; x++)
+    {
+        uint cell = CellIndex(int3(x, (int)id.x, (int)id.y));
+        uint t = _Flags[cell];
+        // Mostly-solid partial cells count too, so thin plates (all-partial, no
+        // hard core) keep contributing to the frontal silhouette.
+        if (t == CELL_SOLID || (t >= CELL_WHEEL0 && t <= CELL_WHEEL0 + 3u) ||
+            _Coverage[cell] >= 0.5)
+        {
+            solids++;
+            anySolid = true;
+        }
+    }
+    if (anySolid) InterlockedAdd(_Stats[0], 1);
+    if (solids > 0) InterlockedAdd(_Stats[1], solids);
+}
+
+// One thread per (x,z) column: planform-silhouette column count, i.e. the area the
+// body projects onto the ground. This is the aeronautical reference area (wing area)
+// and it is what an aircraft's coefficients must be divided by; the frontal
+// silhouette above would flatter a wing by an order of magnitude.
+
+[numthreads(8, 8, 1)]
+void ComputeStatsPlanform(uint3 id : SV_DispatchThreadID)
+{
+    if ((int)id.x >= _Dims.x || (int)id.y >= _Dims.z) return;
+
+    for (int y = 0; y < _Dims.y; y++)
+    {
+        uint cell = CellIndex(int3((int)id.x, y, (int)id.y));
+        uint t = _Flags[cell];
+        if (t == CELL_SOLID || (t >= CELL_WHEEL0 && t <= CELL_WHEEL0 + 3u) ||
+            _Coverage[cell] >= 0.5)
+        {
+            InterlockedAdd(_Stats[2], 1);
+            return;
+        }
+    }
+}

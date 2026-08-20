@@ -1,0 +1,35 @@
+AeroAhmedTest — resolution sweep on the 0° (square-back) case
+walls: half-way bounce-back
+published Cd 0.250; a plain bluff box would be ~1.05
+half-way baseline: 20.0 mm 1.177 | 15.0 mm 1.082 | 12.0 mm 1.019 | 10.5 mm 1.022
+
+CUSTOM ladder (-aeroCells): 1005, 1080 streamwise
+8.0 mm cells (1005 streamwise):
+   0°: voxel volume 0.1091 m³ vs analytic 0.1144 m³ (-4.7%), measured silhouette 0.1132 m² vs reference 0.1120 m², blockage 4.32 %
+  [PASS] 0° voxelised volume is within 15% of the analytic shape  (0.1091 vs 0.1144 m³)
+  [PASS] 0° coefficients use the published reference area  (0.11203)
+  [PASS] 0° run completed  (Session complete)
+        Cd 1.066 ± 1.8 %  Cl 0.086  over 8.0 FT  (unsettled)  21:06
+  [PASS] 0° Cd is physical  (1.066)
+7.4 mm cells (1080 streamwise):
+   0°: voxel volume 0.1090 m³ vs analytic 0.1144 m³ (-4.8%), measured silhouette 0.1138 m² vs reference 0.1120 m², blockage 4.35 %
+  [PASS] 0° voxelised volume is within 15% of the analytic shape  (0.1090 vs 0.1144 m³)
+  [PASS] 0° coefficients use the published reference area  (0.11203)
+  [PASS] 0° run completed  (Session complete)
+        Cd 1.057 ± 1.8 %  Cl 0.154  over 8.0 FT  (unsettled)  28:15
+  [PASS] 0° Cd is physical  (1.057)
+
+  cell size   Cd sim     ±        vs published 0.250   vs a bluff box 1.05
+  --------------------------------------------------------------------------
+     8.0 mm    1.066    1.8 %             4.26x                1.01x
+     7.4 mm    1.057    1.8 %             4.23x                1.01x
+
+  8.0 mm → 7.4 mm moves Cd by -0.8%; the last refinement step moves it 0.8 %
+  that step's own ±2σ band is 5.1 % — the step is inside its noise
+  finest value sits at 4.23x the published 0.250 and 1.01x a plain bluff box (~1.05)
+
+  READ: refining the grid barely moves it. The body reads like a bluff box at
+  every resolution tested, so the flow is separating at the nose and staying
+  separated. Grid alone will not fix this — it is the missing near-wall physics.
+
+AHMED RESOLUTION SWEEP: PASS (8 checks)

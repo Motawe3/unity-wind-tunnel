@@ -1,0 +1,80 @@
+AeroGridConvergence — Range Rover Sport SVR, auto-fitted domain held fixed,
+one tier per row, 10 flow-throughs each, averaged over the last 3.
+Published: Cd ~0.36, A ~2.9 m2, CdA ~1.04 m2.
+
+Coarse: 128x27x49, 228 mm cells, 0.17M cells, tunnel 29.2x6.2x11.2 m
+  Coarse: FT  1  Cd 1.200  Cl 0.680  CV Infinity
+  Coarse: FT  2  Cd 1.338  Cl 0.602  CV 2.99 %
+  Coarse: FT  3  Cd 1.384  Cl 0.544  CV 12.42 %
+  Coarse: FT  4  Cd 1.277  Cl 0.454  CV 3.70 %
+  Coarse: FT  5  Cd 1.179  Cl 0.454  CV 9.67 %
+  Coarse: FT  6  Cd 1.282  Cl 0.394  CV 4.98 %
+  Coarse: FT  7  Cd 1.304  Cl 0.501  CV 8.90 %
+  Coarse: FT  8  Cd 1.360  Cl 0.536  CV 3.03 %
+  Coarse: FT  9  Cd 1.318  Cl 0.597  CV 6.35 %
+  Coarse: FT 10  Cd 1.338  Cl 0.565  CV 6.40 %
+  Coarse: averaged 48 samples — Cd 1.320 +/- 0.070, CdA 4.337 m2, A 3.286 m2
+Medium: 192x41x73, 152 mm cells, 0.57M cells, tunnel 29.2x6.2x11.1 m
+  Medium: FT  1  Cd 1.098  Cl 0.914  CV Infinity
+  Medium: FT  2  Cd 1.159  Cl 0.782  CV 3.27 %
+  Medium: FT  3  Cd 0.913  Cl 0.914  CV 11.25 %
+  Medium: FT  4  Cd 1.160  Cl 0.889  CV 4.32 %
+  Medium: FT  5  Cd 1.135  Cl 1.004  CV 2.15 %
+  Medium: FT  6  Cd 1.119  Cl 0.869  CV 1.83 %
+  Medium: FT  7  Cd 1.078  Cl 0.941  CV 4.94 %
+  Medium: FT  8  Cd 1.091  Cl 0.887  CV 3.14 %
+  Medium: FT  9  Cd 1.164  Cl 1.007  CV 3.21 %
+  Medium: FT 10  Cd 1.224  Cl 0.953  CV 2.22 %
+  Medium: averaged 72 samples — Cd 1.132 +/- 0.060, CdA 3.700 m2, A 3.268 m2
+Fine: 256x55x97, 114 mm cells, 1.37M cells, tunnel 29.2x6.3x11.1 m
+  Fine: FT  1  Cd 1.018  Cl 2.089  CV Infinity
+  Fine: FT  2  Cd 0.933  Cl 2.246  CV 12.76 %
+  Fine: FT  3  Cd 0.953  Cl 2.255  CV 4.23 %
+  Fine: FT  4  Cd 0.845  Cl 2.095  CV 3.46 %
+  Fine: FT  5  Cd 0.973  Cl 2.395  CV 3.30 %
+  Fine: FT  6  Cd 0.981  Cl 2.285  CV 7.06 %
+  Fine: FT  7  Cd 0.880  Cl 2.236  CV 4.02 %
+  Fine: FT  8  Cd 0.957  Cl 2.323  CV 4.93 %
+  Fine: FT  9  Cd 0.916  Cl 2.240  CV 2.62 %
+  Fine: FT 10  Cd 1.001  Cl 2.191  CV 5.78 %
+  Fine: averaged 96 samples — Cd 0.932 +/- 0.059, CdA 3.001 m2, A 3.221 m2
+Ultra: 384x82x146, 76 mm cells, 4.60M cells, tunnel 29.2x6.2x11.1 m
+  Ultra: FT  1  Cd 0.866  Cl 0.815  CV Infinity
+  Ultra: FT  2  Cd 0.841  Cl 1.069  CV 2.70 %
+  Ultra: FT  3  Cd 0.853  Cl 0.740  CV 2.31 %
+  Ultra: FT  4  Cd 0.848  Cl 0.909  CV 5.15 %
+  Ultra: FT  5  Cd 0.894  Cl 1.181  CV 2.66 %
+  Ultra: FT  6  Cd 0.782  Cl 0.786  CV 7.26 %
+  Ultra: FT  7  Cd 0.845  Cl 0.958  CV 3.96 %
+  Ultra: FT  8  Cd 0.885  Cl 1.013  CV 4.80 %
+  Ultra: FT  9  Cd 0.866  Cl 0.752  CV 2.35 %
+  Ultra: FT 10  Cd 0.833  Cl 0.991  CV 2.53 %
+  Ultra: averaged 144 samples — Cd 0.853 +/- 0.034, CdA 2.748 m2, A 3.222 m2
+Extreme: 512x110x194, 57 mm cells, 10.93M cells, tunnel 29.2x6.3x11.1 m
+  Extreme: FT  1  Cd 0.850  Cl 0.480  CV Infinity
+  Extreme: FT  2  Cd 0.791  Cl 0.899  CV 5.98 %
+  Extreme: FT  3  Cd 0.850  Cl 0.626  CV 9.44 %
+  Extreme: FT  4  Cd 0.828  Cl 0.354  CV 3.70 %
+  Extreme: FT  5  Cd 0.799  Cl 0.829  CV 3.92 %
+  Extreme: FT  6  Cd 0.787  Cl 0.413  CV 5.68 %
+  Extreme: FT  7  Cd 0.889  Cl 0.542  CV 3.15 %
+  Extreme: FT  8  Cd 0.809  Cl 0.536  CV 3.57 %
+  Extreme: FT  9  Cd 0.810  Cl 0.670  CV 2.83 %
+  Extreme: FT 10  Cd 0.833  Cl 0.631  CV 5.39 %
+  Extreme: averaged 192 samples — Cd 0.827 +/- 0.040, CdA 2.565 m2, A 3.103 m2
+
+tier      grid            cell   cells/body  A_meas  blockage    Cd     std      CdA    Cd/real  CdA/real   Cl     CV
+--------------------------------------------------------------------------------------------------------------------------
+Coarse    128x27x49        228mm       21    3.286    4.8 %   1.320  0.070   4.337    3.67x    4.15x   0.562  5.3 %
+Medium    192x41x73        152mm       32    3.268    4.7 %   1.132  0.060   3.700    3.14x    3.54x   0.875  5.3 %
+Fine      256x55x97        114mm       43    3.221    4.6 %   0.932  0.059   3.001    2.59x    2.87x   2.217  6.4 %
+Ultra     384x82x146        76mm       64    3.222    4.6 %   0.853  0.034   2.748    2.37x    2.63x   0.958  4.0 %
+Extreme   512x110x194       57mm       85    3.103    4.5 %   0.827  0.040   2.565    2.30x    2.46x   0.672  4.8 %
+
+Reading the table:
+  A_meas shrinks toward the real frontal area as cells shrink — voxel dilation.
+  CdA is the raw force over q, so it is free of that area artifact; judge convergence on it.
+
+  CdA falls monotonically with cell size.
+  Coarsest 4.337 -> finest 2.565 m2, against a real 1.04 m2 (converging toward the published value as the grid refines).
+  Residual grid dependence between the two finest tiers: 6.6 % of CdA (outside the 5 % run-to-run scatter of these runs).

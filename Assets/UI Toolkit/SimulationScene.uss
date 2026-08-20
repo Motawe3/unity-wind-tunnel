@@ -1,0 +1,630 @@
+/* Wind Tunnel runtime console — obsidian / silver / petrol-teal test-cell theme.
+   Two-panel layout: simulation data + run control (left), visuals (right). */
+
+.hud-root {
+    flex-grow: 1;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: stretch;
+}
+
+.panel {
+    margin: 14px;
+    background-color: rgba(9, 11, 14, 0.94);
+    border-width: 1px;
+    border-color: rgb(36, 41, 50);
+    border-radius: 3px;
+    flex-direction: column;
+}
+
+.panel-left { width: 420px; }
+.panel-right { width: 400px; }
+
+.body-scroll {
+    flex-grow: 1;
+    padding: 4px 16px 12px 16px;
+}
+
+/* ---------- header ---------- */
+
+.header {
+    padding: 16px 16px 12px 16px;
+}
+
+.header-title-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.brand {
+    font-size: 21px;
+    -unity-font-style: bold;
+    letter-spacing: 6px;
+    color: rgb(233, 236, 240);
+}
+
+.brand-sub {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: rgb(110, 120, 134);
+    margin-top: 4px;
+}
+
+.header-status {
+    flex-direction: row;
+    align-items: center;
+}
+
+.led {
+    width: 9px;
+    height: 9px;
+    border-radius: 5px;
+    background-color: rgb(70, 78, 90);
+    margin-right: 7px;
+}
+
+.led-running { background-color: rgb(51, 194, 209); }
+.led-converged { background-color: rgb(94, 201, 98); }
+
+.status-text {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: rgb(160, 170, 182);
+}
+
+.hairline {
+    height: 1px;
+    background-color: rgb(30, 35, 43);
+}
+
+/* ---------- sections ---------- */
+
+.section-title {
+    font-size: 12px;
+    -unity-font-style: bold;
+    letter-spacing: 3px;
+    color: rgb(140, 150, 163);
+    margin: 18px 0 10px 0;
+}
+
+/* ---------- section cards: one box per control group ---------- */
+
+.card {
+    background-color: rgba(14, 18, 24, 0.65);
+    border-width: 1px;
+    border-color: rgb(31, 37, 46);
+    border-radius: 4px;
+    padding: 10px 12px 12px 12px;
+    margin: 4px 2px 10px 0;
+}
+
+.card .section-title { margin-top: 0; }
+.card .section-title-row .section-title { margin-bottom: 0; }
+.card .section-title-row { margin-bottom: 10px; }
+.card .section-title-row .section-title-aux { margin-bottom: 0; }
+
+/* ---------- scroll view: thin themed scroller, no arrow buttons ---------- */
+
+.body-scroll .unity-scroller--vertical {
+    width: 8px;
+    border-width: 0;
+    background-color: rgba(0, 0, 0, 0);
+    margin-left: 2px;
+}
+
+.body-scroll .unity-scroller--vertical .unity-scroller__low-button,
+.body-scroll .unity-scroller--vertical .unity-scroller__high-button {
+    display: none;
+}
+
+.body-scroll .unity-scroller--vertical .unity-scroller__slider {
+    width: 8px;
+    min-width: 8px;
+    margin-top: 0;    /* reclaims the space reserved for the arrow buttons */
+    margin-bottom: 0;
+}
+
+.body-scroll .unity-scroller--vertical .unity-base-slider__tracker {
+    background-color: rgb(14, 17, 22);
+    border-width: 0;
+    border-radius: 4px;
+}
+
+.body-scroll .unity-scroller--vertical .unity-base-slider__dragger {
+    width: 8px;
+    left: 0;
+    background-color: rgb(38, 62, 72);
+    border-width: 0;
+    border-radius: 4px;
+}
+
+.body-scroll .unity-scroller--vertical .unity-base-slider__dragger:hover {
+    background-color: rgb(51, 194, 209);
+}
+
+.section-title-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.section-title-aux {
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: rgb(51, 194, 209);
+    margin-bottom: 10px;
+}
+
+.fine-print {
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: rgb(100, 110, 124);
+    margin-top: 8px;
+    white-space: normal;
+}
+
+.footer-note {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: rgb(100, 110, 124);
+    -unity-text-align: middle-center;
+    padding: 10px 0 12px 0;
+}
+
+/* Fixed strip below the visuals scroll view — stays put while the body scrolls. */
+.panel-footer {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+}
+
+.footer-caption {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: rgb(110, 120, 134);
+}
+
+.footer-value {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: rgb(51, 194, 209);
+}
+
+/* ---------- telemetry tiles ---------- */
+
+.metrics-grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.tile {
+    width: 25%;
+    padding: 8px 10px 7px 10px;
+    border-left-width: 1px;
+    border-color: rgb(30, 35, 43);
+    margin-bottom: 8px;
+}
+
+.tile-value {
+    font-size: 21px;
+    color: rgb(226, 230, 235);
+    -unity-font-style: bold;
+}
+
+.tile-value.accent { color: rgb(51, 194, 209); }
+
+.tile-caption {
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: rgb(110, 120, 134);
+    margin-top: 3px;
+}
+
+/* ---------- convergence chart ---------- */
+
+.chart-host {
+    height: 130px;
+    border-width: 1px;
+    border-color: rgb(30, 35, 43);
+    border-radius: 2px;
+}
+
+/* ---------- flow section scanner ---------- */
+
+.slice-frame {
+    height: 330px;
+    border-width: 1px;
+    border-color: rgb(30, 35, 43);
+    background-color: rgb(11, 13, 17);
+    padding: 9px;
+}
+
+.slice-image {
+    flex-grow: 1;
+    background-color: rgb(13, 16, 21);
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.corner {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    border-color: rgb(51, 194, 209);
+}
+
+.corner-tl { top: 4px; left: 4px; border-left-width: 2px; border-top-width: 2px; }
+.corner-tr { top: 4px; right: 4px; border-right-width: 2px; border-top-width: 2px; }
+.corner-bl { bottom: 4px; left: 4px; border-left-width: 2px; border-bottom-width: 2px; }
+.corner-br { bottom: 4px; right: 4px; border-right-width: 2px; border-bottom-width: 2px; }
+
+.legend-row {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.legend-label {
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: rgb(130, 140, 153);
+    min-width: 48px;
+}
+
+.legend-label-right { -unity-text-align: middle-right; }
+
+.legend-bar {
+    flex-grow: 1;
+    height: 3px;
+    margin: 0 10px;
+    background-color: rgb(51, 194, 209);
+    opacity: 0.35;
+}
+
+/* ---------- buttons ---------- */
+
+.btn-row {
+    flex-direction: row;
+    margin: 8px 0 2px 0;
+}
+
+.btn {
+    flex-grow: 1;
+    flex-basis: 0;
+    height: 32px;
+    margin-right: 5px;
+    background-color: rgb(18, 22, 28);
+    border-width: 1px;
+    border-color: rgb(42, 47, 56);
+    border-radius: 2px;
+    color: rgb(196, 204, 214);
+    font-size: 11px;
+    letter-spacing: 2px;
+    -unity-font-style: bold;
+}
+
+.btn:hover {
+    border-color: rgb(51, 194, 209);
+    color: rgb(240, 244, 248);
+    background-color: rgb(22, 27, 34);
+}
+
+.btn:active {
+    background-color: rgb(14, 40, 44);
+}
+
+/* Primary action: the one filled element on the console. */
+.btn-run {
+    height: 40px;
+    margin: 10px 0 4px 0;
+    background-color: rgb(41, 168, 182);
+    border-width: 0;
+    border-radius: 2px;
+    color: rgb(6, 20, 23);
+    font-size: 13px;
+    letter-spacing: 4px;
+    -unity-font-style: bold;
+}
+
+.btn-run:hover { background-color: rgb(63, 199, 214); }
+.btn-run:active { background-color: rgb(30, 132, 144); }
+
+/* Secondary simulation controls: outlined, silver. */
+.btn-secondary {
+    border-color: rgb(70, 78, 92);
+    color: rgb(214, 220, 228);
+    background-color: rgb(14, 17, 22);
+}
+
+.btn-secondary:hover {
+    border-color: rgb(150, 160, 172);
+    background-color: rgb(24, 29, 36);
+}
+
+/* Segmented option buttons (modes, ramps): quiet ghosts. */
+.seg-btn {
+    height: 28px;
+    letter-spacing: 1px;
+    font-size: 10px;
+    -unity-font-style: normal;
+}
+
+.seg-active {
+    border-color: rgb(51, 194, 209);
+    color: rgb(120, 218, 229);
+    background-color: rgb(13, 31, 35);
+    -unity-font-style: bold;
+}
+
+/* ---------- sliders ---------- */
+
+.aero-slider {
+    margin: 6px 0;
+}
+
+.aero-slider .unity-base-field__label {
+    min-width: 100px;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: rgb(140, 150, 163);
+}
+
+.aero-slider #unity-tracker {
+    height: 2px;
+    background-color: rgb(38, 44, 53);
+    border-width: 0;
+    margin-top: -1px;
+}
+
+.aero-slider #unity-dragger {
+    width: 11px;
+    height: 11px;
+    border-radius: 6px;
+    margin-top: -5px;
+    background-color: rgb(210, 216, 224);
+    border-width: 1px;
+    border-color: rgb(51, 194, 209);
+}
+
+/* ---------- dropdowns ---------- */
+
+.aero-dropdown {
+    margin: 6px 0;
+}
+
+.aero-dropdown .unity-base-popup-field__input {
+    background-color: rgb(18, 22, 28);
+    border-width: 1px;
+    border-color: rgb(42, 47, 56);
+    border-radius: 2px;
+    color: rgb(214, 220, 228);
+    font-size: 11px;
+    letter-spacing: 1px;
+    padding: 3px 8px;
+}
+
+.aero-dropdown .unity-base-popup-field__input:hover {
+    border-color: rgb(51, 194, 209);
+    color: rgb(240, 244, 248);
+}
+
+.field-caption {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: rgb(140, 150, 163);
+    margin: 10px 0 0 0;
+}
+
+.wind-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.wind-slider {
+    flex-grow: 1;
+}
+
+.wind-value {
+    min-width: 78px;
+    font-size: 15px;
+    -unity-font-style: bold;
+    color: rgb(51, 194, 209);
+    -unity-text-align: middle-right;
+}
+
+/* ---------- test pager ---------- */
+
+.test-name {
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: rgb(226, 230, 235);
+    white-space: normal;
+    flex-grow: 1;
+    -unity-text-align: middle-center;
+}
+
+.test-nav {
+    flex-grow: 0;
+    flex-basis: auto;
+    width: 34px;
+}
+
+/* ---------- test progress ---------- */
+
+.test-progress {
+    height: 3px;
+    background-color: rgb(30, 35, 43);
+    margin: 3px 0 6px 0;
+}
+
+.test-progress-fill {
+    height: 100%;
+    width: 0%;
+    background-color: rgb(51, 194, 209);
+}
+
+.test-progress-fill-done {
+    background-color: rgb(94, 201, 98);
+}
+
+/* Draws the eye to the next step (e.g. EXPORT REPORT after a completed test). */
+.btn-attention {
+    border-color: rgb(94, 201, 98);
+    color: rgb(140, 226, 144);
+}
+
+/* ---------- collapsible panels ---------- */
+
+.collapse-btn {
+    width: 24px;
+    height: 24px;
+    margin-left: 10px;
+    background-color: rgb(18, 22, 28);
+    border-width: 1px;
+    border-color: rgb(42, 47, 56);
+    border-radius: 2px;
+    color: rgb(150, 160, 172);
+    font-size: 12px;
+    -unity-font-style: bold;
+    padding: 0;
+}
+
+.collapse-btn:hover {
+    border-color: rgb(51, 194, 209);
+    color: rgb(240, 244, 248);
+}
+
+.expand-tab {
+    display: none;
+    flex-grow: 1;
+    margin: 0;
+    background-color: rgba(9, 11, 14, 0.94);
+    border-width: 0;
+    color: rgb(120, 218, 229);
+    font-size: 14px;
+    -unity-font-style: bold;
+    letter-spacing: 0;
+}
+
+.expand-tab:hover {
+    background-color: rgb(13, 31, 35);
+}
+
+.panel-collapsed {
+    width: 30px;
+}
+
+.panel-collapsed .header,
+.panel-collapsed .hairline,
+.panel-collapsed .body-scroll,
+.panel-collapsed .footer-note {
+    display: none;
+}
+
+.panel-collapsed .expand-tab {
+    display: flex;
+}
+
+/* ---------- bottom-center hint bar ---------- */
+
+/* ---------- heatmap color key (above the hint bar) ---------- */
+
+.heatmap-key {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 52px;
+    align-items: center;
+    display: none; /* shown from code while a surface heatmap is active */
+}
+
+.heatmap-key-box {
+    background-color: rgba(9, 11, 14, 0.88);
+    border-width: 1px;
+    border-color: rgb(36, 41, 50);
+    border-radius: 2px;
+    padding: 7px 16px 6px 16px;
+    align-items: center;
+}
+
+.heatmap-key-title {
+    font-size: 11px;
+    -unity-font-style: bold;
+    letter-spacing: 3px;
+    color: rgb(140, 150, 163);
+    margin-bottom: 4px;
+}
+
+.heatmap-key-strip-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.heatmap-key-gradient {
+    width: 240px;
+    height: 8px;
+    margin: 0 10px;
+    border-width: 1px;
+    border-color: rgb(36, 41, 50);
+}
+
+.heatmap-key-label {
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: rgb(150, 160, 172);
+    min-width: 70px;
+    -unity-text-align: middle-right;
+}
+
+.heatmap-key-label-right { -unity-text-align: middle-left; }
+
+.heatmap-key-desc {
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: rgb(100, 110, 124);
+    margin-top: 4px;
+}
+
+/* ---------- top-center debug stats (F2) ---------- */
+
+.debug-bar {
+    position: absolute;
+    top: 10px;
+    left: 0;
+    right: 0;
+    align-items: center;
+    display: none; /* shown from code while debug stats are on */
+}
+
+.debug-text {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: rgb(224, 62, 47);
+}
+
+.hint-bar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 12px;
+    align-items: center;
+}
+
+.hint-text {
+    background-color: rgba(9, 11, 14, 0.88);
+    border-width: 1px;
+    border-color: rgb(36, 41, 50);
+    border-radius: 2px;
+    padding: 7px 16px;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: rgb(150, 160, 172);
+}
+
+.hint-text-locked {
+    color: rgb(120, 218, 229);
+    border-color: rgb(38, 116, 126);
+}

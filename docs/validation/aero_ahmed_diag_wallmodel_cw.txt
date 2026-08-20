@@ -1,0 +1,35 @@
+AeroAhmedDiag — Stage 2.5a: measure the missing near-wall physics
+Ahmed 25°, 7.4 mm cells (1080 streamwise), 40 m/s, soft voxels on, half-way walls, WALL MODEL ON
+WALE Cw OVERRIDDEN to 0.15 (default 0.5) — SGS-magnitude experiment
+
+  [PASS] simulation started
+grid 1080×188×251, U_lattice 0.0800, nu_lattice 3.92E-006 (tau+ = 0.5000118)
+
+  [PASS] nuT capture produced data  (49672235 fluid cells)
+---- 1. effective viscosity (WALE nu_T, lattice units) ----
+  fluid cells 49,672,235, near-body fluid cells 26,272
+  nu_T mean 2.32E-002   median 6.55E-003   near-body mean 1.09E-006
+  nu_T/nu_mol: mean 5902x   median 1669x   near-body 0x
+  Re over body height: molecular 7.89E+005   eff (mean nu_T) 1.34E+002   eff (near-body) 6.17E+005
+  physical Re over body height at 40 m/s: 7.68E+005
+
+---- 2. flow over the 25-degree slant (u_x / U_inf, cells above the found surface) ----
+  station      x_frac   surf_y    +1 cell   +2 cells  +3 cells  +5 cells  read
+  0/8        0.00    0.324     0.111     0.232     0.632     0.707   attached-ish
+  1/8        0.13    0.316    -0.030    -0.463    -0.015     0.829   SEPARATED
+  2/8        0.25    0.302    -0.009    -0.630     0.017    -0.177   SEPARATED
+  3/8        0.38    0.294     0.239    -0.941    -0.721     0.385   attached-ish
+  4/8        0.50    0.279    -0.017     0.311     0.429    -0.287   attached-ish
+  5/8        0.63    0.272     0.113     0.476     1.118    -0.623   attached-ish
+  6/8        0.75    0.257    -0.083    -0.014    -0.780    -0.510   SEPARATED
+  7/8        0.88    0.249     0.022    -0.008     0.262     1.509   attached-ish
+  8/8        1.00    0.242     0.160     0.490    -0.185     1.419   attached-ish
+  [PASS] slant stations probed  (9 of 9)
+  => 3 of 9 stations read as separated at the wall
+
+---- 3. first-cell height vs boundary layer ----
+  flat-plate turbulent delta at slant start (x_run 0.84 m, Re_x 2.25E+006): 16.7 mm
+  first fluid cell centre ~3.7 mm above the wall -> y/delta ~ 0.22
+  (wall-model validity per the plan: y/delta <~ 0.2)
+
+AHMED DIAG: PASS (3 checks)

@@ -1,0 +1,84 @@
+AeroAhmedTest — Ahmed body (Ahmed, Ramm & Faltin 1984)
+model 1.044 × 0.389 × 0.288 m, clearance 50 mm, slant length 222 mm, reference area 0.11203 m²
+tunnel 8.04 × 1.40 × 1.87 m at 15.0 mm cells, 40 m/s, fixed floor, 6 FT averaged
+
+--- geometry ---
+   0°: bounds 1.044 × 0.338 × 0.389 m   slant drops 0.000 m over 0.222 m   base height 0.288 m
+  [PASS] 0° length matches the published 1.044 m  (1.0440 m)
+  [PASS] 0° width matches the published 0.389 m  (0.3890 m)
+  [PASS] 0° height including clearance matches  (0.3380 m)
+  [PASS] 0° sits on its stilts at y=0  (lowest point 0.0000 m)
+  25°: bounds 1.044 × 0.338 × 0.389 m   slant drops 0.094 m over 0.201 m   base height 0.194 m
+  [PASS] 25° length matches the published 1.044 m  (1.0440 m)
+  [PASS] 25° width matches the published 0.389 m  (0.3890 m)
+  [PASS] 25° height including clearance matches  (0.3380 m)
+  [PASS] 25° sits on its stilts at y=0  (lowest point 0.0000 m)
+  30°: bounds 1.044 × 0.338 × 0.389 m   slant drops 0.111 m over 0.192 m   base height 0.177 m
+  [PASS] 30° length matches the published 1.044 m  (1.0440 m)
+  [PASS] 30° width matches the published 0.389 m  (0.3890 m)
+  [PASS] 30° height including clearance matches  (0.3380 m)
+  [PASS] 30° sits on its stilts at y=0  (lowest point 0.0000 m)
+  35°: bounds 1.044 × 0.338 × 0.389 m   slant drops 0.127 m over 0.182 m   base height 0.161 m
+  [PASS] 35° length matches the published 1.044 m  (1.0440 m)
+  [PASS] 35° width matches the published 0.389 m  (0.3890 m)
+  [PASS] 35° height including clearance matches  (0.3380 m)
+  [PASS] 35° sits on its stilts at y=0  (lowest point 0.0000 m)
+  [PASS] reference area is width × height  (0.11203)
+
+   0°: voxel volume 0.1025 m³ vs analytic 0.1144 m³ (-10.4%), measured silhouette 0.1229 m² vs reference 0.1120 m², blockage 4.70 %
+  [PASS] 0° voxelised volume is within 15% of the analytic shape  (0.1025 vs 0.1144 m³)
+  [PASS] 0° coefficients use the published reference area  (0.11203)
+  [PASS] 0° run completed  (Session complete)
+        Cd 1.082 ± 1.9 %  Cl 0.853  over 8.0 FT  (unsettled)  01:49
+  [PASS] 0° Cd is physical  (1.082)
+  25°: voxel volume 0.0993 m³ vs analytic 0.1108 m³ (-10.3%), measured silhouette 0.1229 m² vs reference 0.1120 m², blockage 4.70 %
+  [PASS] 25° voxelised volume is within 15% of the analytic shape  (0.0993 vs 0.1108 m³)
+  [PASS] 25° coefficients use the published reference area  (0.11203)
+  [PASS] 25° run completed  (Session complete)
+        Cd 1.034 ± 1.6 %  Cl 1.068  over 8.0 FT  (unsettled)  01:48
+  [PASS] 25° Cd is physical  (1.034)
+  30°: voxel volume 0.0990 m³ vs analytic 0.1103 m³ (-10.2%), measured silhouette 0.1229 m² vs reference 0.1120 m², blockage 4.70 %
+  [PASS] 30° voxelised volume is within 15% of the analytic shape  (0.0990 vs 0.1103 m³)
+  [PASS] 30° coefficients use the published reference area  (0.11203)
+  [PASS] 30° run completed  (Session complete)
+        Cd 1.071 ± 1.4 %  Cl 1.044  over 8.0 FT  (unsettled)  01:49
+  [PASS] 30° Cd is physical  (1.071)
+  35°: voxel volume 0.0988 m³ vs analytic 0.1099 m³ (-10.1%), measured silhouette 0.1229 m² vs reference 0.1120 m², blockage 4.70 %
+  [PASS] 35° voxelised volume is within 15% of the analytic shape  (0.0988 vs 0.1099 m³)
+  [PASS] 35° coefficients use the published reference area  (0.11203)
+  [PASS] 35° run completed  (Session complete)
+        Cd 1.029 ± 1.4 %  Cl 1.023  over 8.0 FT  (unsettled)  01:48
+  [PASS] 35° Cd is physical  (1.029)
+
+--- against published values ---
+  slant    Cd sim    ±        Cd published   ratio    Cl sim   blockage
+  ---------------------------------------------------------------------
+     0°    1.082    1.9 %        0.250    4.33x    0.853     4.7 %
+    25°    1.034    1.6 %        0.285    3.63x    1.068     4.7 %
+    30°    1.071    1.4 %        0.378    2.83x    1.044     4.7 %
+    35°    1.029    1.4 %        0.260    3.96x    1.023     4.7 %
+
+  Published values are approximate (Ahmed et al. 1984) and are here for
+  orientation. The test that matters is the SHAPE of the curve below.
+
+--- the separation test ---
+  The Ahmed body's signature: drag climbs with slant angle to a peak near 30°,
+  then COLLAPSES as the flow stops clinging to the slant and separates at the
+  top edge instead. Reproducing that drop means the solver is predicting
+  separation on a smooth surface. Failing to means it is not.
+
+  spread across all angles:  sim 5 %   published 51 %
+  measurement uncertainty:   ±1.9 %  → the sweep moves the answer by 2.7× the error bar
+  rise 0° → 30°:             sim 1.082 → 1.071   (-1.0%)   published +51%
+  drop 30° → 35°:            sim 1.071 → 1.029   (4 %)        published 31 %
+
+  READ: the solver is essentially BLIND to the rear slant. The published Cd varies by
+  ~50% across these angles; here it barely moves, and what movement there is sits
+  close to the error bars. Every angle lands near Cd ≈ 1.0 — the value of a plain
+  square-backed box — which says the flow is separating early and staying separated
+  no matter what shape the tail is. That is the unresolved boundary layer, and it is
+  the number to beat. A finding, not a harness failure.
+  [PASS] every angle produced a measurement
+  [PASS] the angles are directly comparable (identical grid)
+
+AHMED BODY HARNESS: PASS (35 checks)

@@ -1,0 +1,38 @@
+fileFormatVersion: 2
+guid: 89fc8c46bd90d2c469210d1fdcb7e606
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 4353c9b73ac34dc2b8d77108c936501a, type: 3}
+  settings:
+    sourceUnit: 2
+    sourceOrientation: 1
+    additionalScale: 1
+    weldVertices: 1
+    weldTolerance: 0.00001
+    forceRecalculateNormals: 0
+    smoothingAngle: 30
+    generateLODs: 0
+    lodQualities:
+    - 0.5
+    - 0.15
+    lodMinTriangles: 512
+    lodFirstTransition: 0.35
+    lodCullHeight: 0.015
+    colliderMode: 4
+    colliderQuality: 0.5
+    materialMode: 0
+    defaultColor: {r: 1, g: 1, b: 1, a: 1}
+    readWriteMeshes: 1
+    markStatic: 0
+    generateLightmapUVs: 0
+    stepLinearDeflection: 0.1
+    stepAngularDeflection: 20
+    ifcLinearDeflection: 0.01
+    ifcImportProperties: 1
+    ifcImportSpaces: 1
+    stepTimeoutSeconds: 0
