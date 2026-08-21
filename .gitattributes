@@ -171,3 +171,9 @@ Packages/packages-lock.json linguist-generated
 
 # Exceptions for .asset files such as lightning pre-baking
 LightingData.asset     binary
+
+# README screenshots. Kept OUT of LFS on purpose: they are served on the repo page
+# and on every README view, and LFS bandwidth is metered and billed to the owner,
+# where ordinary git blobs are not. Must stay ahead of any first commit of Images/ —
+# moving a file out of LFS afterwards needs a history rewrite.
+Images/**               -filter -diff -merge -text

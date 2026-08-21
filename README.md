@@ -6,6 +6,11 @@ lift split (aero balance), Cy**, yaw sweeps, ride-height sweeps, fixed-floor vs 
 ground simulation, smoke-particle flow visualization, a live UI Toolkit dashboard and
 HTML/CSV reports.
 
+![The Wind Tunnel console: live telemetry and Cd convergence on the left, flow-visualization controls on the right, GPU smoke tracers streaming past the vehicle.](Images/console-overview.jpg)
+
+*The sample scene at Ultra — 384×82×146 cells at 76 mm, 4.6 % blockage. The fine print
+under the telemetry tiles is how you tell whether the numbers above it are worth anything.*
+
 > ⚠️ **What this is (and isn't).** This is a *design-exploration, comparison and
 > education* tool. The flow solver is a real CFD method (D3Q19 LBM, TRT collision with
 > WALE LES, the same family as commercial automotive tools), but it runs at interactive
@@ -36,6 +41,19 @@ Slots **4–6 are the point of the demo**: one vehicle, one grid, one setting ch
 the kind of delta this tool is honest about — read [Validation status](#validation-status)
 before you trust any absolute number it prints. Those three import from `.blend` and need
 Blender installed (see [Requirements](#requirements)); slots 1–3 do not.
+
+![The three Silverado bed configurations side by side, each with its surface heatmap and wake tracers: flat tonneau marked best, open bed in the middle, bed cap marked worst.](Images/silverado-bed-comparison.jpg)
+
+*Keys 4, 5 and 6 at the same grid, same 120 km/h drag test — and the ranking is not the one
+most people guess. Read it as what this tool measured on this grid, not as a fact about
+pickup trucks: [Validation status](#validation-status) is specific about which deltas
+survive scrutiny.*
+
+![The open-bed Silverado from above and behind, tracers curling into a vortex that sits inside the bed, annotated "trapped vortex".](Images/silverado-trapped-vortex.jpg)
+
+*The other half of the answer. Coefficients tell you a bed configuration costs drag; the
+tracers show you the vortex parked in the bed that is doing it. Flow visualization is the
+one output that stays trustworthy at every resolution.*
 
 The Molnia concept racer ships in `Assets/Prefabs/OtherVehicles/` but is not wired to a
 hotkey — add it to the spawner if you want it (see
@@ -148,6 +166,17 @@ without the plane covering the car.
 **CP RANGE** and **SHEAR RANGE** set the colour scale — narrow them to pull detail out of a
 flat-looking body. A colour key appears bottom-center while a mode is active.
 
+![The Range Rover in PRESSURE mode: red compression at the nose, blue suction over the roof and around the wheel arches.](Images/surface-pressure.jpg)
+
+*`PRESSURE` — the key reads in pascals: blue suction, green near freestream static, red
+compression at the stagnation points.*
+
+![The same vehicle in SHEAR mode: orange and red over the attached upper surfaces, blue where the flow has separated.](Images/surface-shear.jpg)
+
+*`SHEAR` — blue is stalled or separated flow, green attached, red fast attached flow. This is
+the view that shows you where the body loses the flow, which is the thing the drag number
+alone can never tell you.*
+
 **SMOKE & TRACERS** — GPU tracer rakes advected through the solved velocity field:
 **COUNT** (4k–262k particles), **SIZE**, **TRAIL** length, **TRAIL GAP**, **PLAYBACK** speed,
 **INTENSITY**, **DEPTH CONTRAST**, and four colour ramps (ICE / EMBER, THERMAL, PETROL, MONO).
@@ -166,6 +195,12 @@ The class on `AeroVehicle` is the one setting that has to be right; it decides t
 | `Watercraft` | see below | — | frontal silhouette | waterline on the floor | not scored |
 | `ReferenceBody` | none (free air) | — | frontal silhouette | centred in the domain | not scored |
 
+![The autopilot drone in free air with a surface-pressure heatmap and tracers, no ground plane under it.](Images/aircraft-drone.jpg)
+
+*`Aircraft` (demo key 2): no floor, the body centred in the cross-section, coefficients
+divided by wing planform rather than frontal silhouette, and the tunnel refitted around a
+35 m span — all of it decided by the one class field.*
+
 **Watercraft** has two modes, because the solver has no free surface:
 
 - `AboveWaterlineAir` — the waterline becomes the tunnel floor and only the
@@ -175,6 +210,12 @@ The class on `AeroVehicle` is the one setting that has to be right; it decides t
   temperature fits, fresh or sea). Gives pressure and friction drag but **no
   wave-making resistance**, which dominates real planing-hull power — treat it as a
   comparative hull-shape tool only.
+
+![The racing boat with a wall-shear heatmap and green tracers streaming down its length.](Images/watercraft-boat.jpg)
+
+*`Watercraft` in `AboveWaterlineAir` (demo key 3). The hull still renders whole, but the
+waterline is the tunnel floor — only what sits above it is in the flow, which is exactly how
+a real tunnel measures a boat.*
 
 ## Adding your own vehicle
 
@@ -305,12 +346,23 @@ Open it with **COMPARE RESULTS** in the runtime console or
    queues can still be compared on the test they share.
 3. **Read the verdict banner** — the winner, `TOO CLOSE TO CALL`, or `CANNOT COMPARE` with the
    reason it refused.
-4. **Check the comparability table** before the numbers. Every check is marked `MATCH`,
-   `NOTED`, `CAVEAT` or `BLOCKS COMPARISON`, with the offending values from each side.
+4. **Read the like-for-like audit** before the numbers. Every check is marked `MATCH`,
+   `NOTED`, `CAVEAT` or `BLOCKS COMPARISON`, with the values from each side that earned it.
 5. **Read the metric table**: A, B, Δ, Δ % and which side is better *by that metric's polarity*
    for the class involved. Sweeps get a second table comparing point by point.
 6. **EXPORT COMPARISON** writes the whole audit to its own HTML file. **REFRESH** re-reads the
    folder — use it after exporting a new run with the window open. **CLOSE** or **Esc** dismisses.
+
+![The exported comparison: a winner banner giving the CdA delta against the uncertainty band, above a like-for-like audit table where every check reads MATCH except a flagged measurement uncertainty.](Images/comparison-audit.jpg)
+
+*The verdict never arrives on its own. It carries the delta, the uncertainty band it had to
+beat, and — here — the caveat that one of the two runs never settled.*
+
+![The measurements table: Cd, CdA, lift, balance, drag force and aero power for both runs with delta, delta percent and a Better column.](Images/comparison-measurements.jpg)
+
+*Cd, CdA, the lift split, drag force and aero power, each with Δ, Δ % and which side wins on
+that metric. Note that reference area and test speed are in the table too: if they differ,
+the comparison is not the one you think it is.*
 
 ### What the audit does before it differences anything
 
@@ -327,6 +379,24 @@ Open it with **COMPARE RESULTS** in the runtime console or
   a winner — the difference between an engineering result and noise. (The band is the
   standard error, not the raw sample scatter: averaging is precisely what buys the
   resolution to see a small difference, and judging against scatter would throw it away.)
+
+### Real-world impact
+
+When a delta survives the audit, the exported comparison ends with a **Real-world impact**
+table that translates it: the aero power the difference costs or saves at test speed, then
+highway, mixed and urban fuel percentages, litres and CO₂ per year, and EV highway range.
+Every row prints the basis it was derived from, and the assumptions behind all of them are
+printed underneath so they can be argued with rather than taken on trust.
+
+![The real-world impact table: drag area, aero power, highway/mixed/urban fuel, litres and CO2 per year and EV range, each with its basis, over a paragraph of stated assumptions.](Images/comparison-real-world.jpg)
+
+*Only two rows are measured; the rest are marked `est.` and span 0.7–1.0× of the measured
+CdA delta, because this tool's own cross-vehicle validation found pairwise deltas
+exaggerated by up to ~30 %.*
+
+If the drag-area difference lands **inside** the measurement uncertainty, the section
+derives nothing at all and says so — *no claim* — rather than turning noise into a fuel
+saving. That refusal is the point of the feature.
 
 Two runs auto-fitted to *different* vehicles land on different cell sizes, because each
 domain is scaled to its own body — which the audit then has to flag. Set
