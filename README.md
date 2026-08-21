@@ -14,7 +14,55 @@ HTML/CSV reports.
 > physical wind-tunnel measurement. See [Validation status](#validation-status) for exactly
 > how far the numbers go.
 
+## Run the demo
+
+Open **`Assets/Scenes/SimulationScene.unity`** and press **Play**. The Range Rover spawns,
+the tunnel auto-fits around it, the solver starts, and the console comes up over the view.
+
+Press the **number keys to swap vehicles**. A swap is not just an `Instantiate` — it aborts
+whatever test was running, re-voxelizes the new body, re-fits the tunnel around it and
+restarts the flow, because the domain that suited the last vehicle is wrong for this one.
+
+| Key | Vehicle | Class | Why it's in the demo |
+|---|---|---|---|
+| **1** | Range Rover Sport SVR | Road vehicle | Large SUV: the high-blockage, high-drag baseline. Spawns on Play. |
+| **2** | Autopilot Drone | Aircraft | Free-air class — no ground plane, wing-planform reference area, scored on L/D. |
+| **3** | Racing Boat | Watercraft | Above-waterline mode: the waterline *is* the tunnel floor, and only what's above it is in the flow. |
+| **4** | Chevrolet Silverado — open bed | Road vehicle | Bed comparison, variant 1 of 3. |
+| **5** | Chevrolet Silverado — bed cap | Road vehicle | Variant 2 — same truck, closed bed. |
+| **6** | Chevrolet Silverado — flat tonneau | Road vehicle | Variant 3 — same truck, flat cover. |
+
+Slots **4–6 are the point of the demo**: one vehicle, one grid, one setting changed. That is
+the kind of delta this tool is honest about — read [Validation status](#validation-status)
+before you trust any absolute number it prints. Those three import from `.blend` and need
+Blender installed (see [Requirements](#requirements)); slots 1–3 do not.
+
+The Molnia concept racer ships in `Assets/Prefabs/OtherVehicles/` but is not wired to a
+hotkey — add it to the spawner if you want it (see
+[Save it as a prefab and add it to the spawner](#6-save-it-as-a-prefab-and-add-it-to-the-spawner)).
+
+### Camera and hotkeys
+
+| Input | Action |
+|---|---|
+| **1**–**6** | Swap the vehicle under test. Keys 1–9 map to spawner slots 1–9. |
+| **Middle mouse** | Toggle mouse lock — free-look stays on until you press it again. |
+| **Right mouse** (hold) | Temporary free-look while the cursor is free. |
+| **WASD**, **Q** / **E** | Move while looking; Q down, E up. |
+| **Shift** | Fast move. |
+| **Scroll** | Dolly forward/back. While flying, tunes the move speed instead. |
+| **Space** | Run / pause the solver. |
+| **C** | Screenshot — pauses the sim, writes a PNG and opens the folder. |
+| **F2** | FPS readout, top-center. |
+| **Esc** | Closes the comparison window. |
+
+The hint bar along the bottom of the screen lists the camera keys and updates to match the
+mouse-lock state. It does not list the vehicle keys — that is what the table above is for.
+
 ## Quick start
+
+Setting up your *own* vehicle in your *own* scene — for the sample scene, see
+[Run the demo](#run-the-demo) above.
 
 1. **GameObject → Wind Tunnel → Sample Test Vehicle** — or bring your own model, which
    takes a few more steps: see [Adding your own vehicle](#adding-your-own-vehicle).
@@ -31,6 +79,80 @@ HTML/CSV reports.
 6. Press **Run all tests**, then **Export report** (HTML + CSV + JSON archive).
 7. **Window → Wind Tunnel → Compare Results** (or **COMPARE RESULTS** in the runtime HUD)
    to difference two exported sessions.
+
+## The runtime console
+
+The in-game console drives the same tunnel and test runner the editor dashboard does, so
+anything below can also be done from **Window → Wind Tunnel → Dashboard** without entering
+play mode. Either panel folds away with the **`<`** / **`>`** tab in its header.
+
+### Left panel — measurement
+
+**LIVE TELEMETRY** — Cd, CdA, front and rear Cl, Cy, drag force in newtons, aerodynamic
+power in kilowatts and the wind speed the numbers were taken at, for whichever vehicle is
+in the tunnel. The fine print underneath is the line that tells you whether to believe them:
+grid dimensions, cell size, **blockage ratio** (over 7.5 % and the results read high — see
+[Engineering conventions](#engineering-conventions)), effective Reynolds number, and solver
+step count.
+
+**CD CONVERGENCE** — Cd against time, with the live coefficient of variation beside the
+title. The status light reads `STANDBY` → `RUNNING` → `CONVERGED`, where converged means the
+*mean* has settled inside its own uncertainty — not that the wake stopped moving. A bluff-body
+wake never stops moving.
+
+**TUNNEL CONTROL**
+
+| Control | What it does |
+|---|---|
+| **WIND** | Freestream speed, 30–250 km/h. Applied on release rather than during the drag, and it restarts a live run: changing speed re-derives the lattice unit mapping. |
+| **SIM SPEED** | Solver steps per rendered frame, 1–128. A speed/interactivity trade only — it buys simulated time per second, and changes nothing about the physics. |
+| **RESOLUTION** | `Coarse` → `Extreme`. Choosing a tier by hand **turns the auto-fit's automatic resolution off**, so the next vehicle swap can't silently revert you; the grid rebuilds immediately if the tunnel is running. Never compare two runs across different tiers. |
+| **PAUSE** / **RESUME** | Freezes the solver with the flow field intact. |
+| **RESET FLOW** | Clears the field back to freestream and starts the averaging over. |
+| **CLEAR SMOKE** | Empties the tracer rakes. |
+
+**TEST**
+
+- **`<`** / **`>`** page through the queue the vehicle's class was given — for a road car:
+  drag at 120 km/h, a ±15° yaw sweep, and a ride-height sweep. Changing the selection aborts
+  any run and resets the flow, so the next test starts from a clean field rather than the
+  tail of the last one.
+- **RUN TEST** runs the *selected* test as a one-test session. The editor dashboard's
+  **Run all tests** runs the whole queue; the progress bar and status line track either.
+- **ABORT** stops the session and restores the vehicle's pose and reference area.
+- **EXPORT REPORT** writes HTML + CSV + a `.windtunnel.json` archive for the last
+  **completed** session, and highlights itself when one is waiting. Free-running telemetry is
+  not a session — there is nothing to export until a test finishes.
+- **COMPARE RESULTS** opens the comparison view — see [Comparing results](#comparing-results).
+- **OPEN FOLDER** shows where exports land: `<project>/Reports` in the editor,
+  `Application.persistentDataPath/Reports` in a build. Screenshots go to `Screenshots/`
+  alongside it.
+
+### Right panel — visualization
+
+**FLOW SECTION — SCANNER** — a slice plane sampled straight out of the solver's 3D field
+into the panel image; there is no second camera involved. **SPEED** maps |u| as a ratio of
+freestream up to 1.6× V∞, **PRESSURE** maps Cp. **POSITION** slides the plane through the
+tunnel and **PLANE OPACITY** fades the quad drawn in the world, so you can read the scanner
+without the plane covering the car.
+
+**VEHICLE SURFACE** — paints the body itself rather than the air around it:
+
+| Mode | Shows |
+|---|---|
+| **PRESSURE** | Surface Cp — stagnation at the nose, suction over the roof and screen. |
+| **SHEAR** | Wall-shear pattern: where the flow is still attached and where it has let go. |
+| **SPEED** | Flow speed just off the surface. |
+| **OFF** | Restores the vehicle's original materials. |
+
+**CP RANGE** and **SHEAR RANGE** set the colour scale — narrow them to pull detail out of a
+flat-looking body. A colour key appears bottom-center while a mode is active.
+
+**SMOKE & TRACERS** — GPU tracer rakes advected through the solved velocity field:
+**COUNT** (4k–262k particles), **SIZE**, **TRAIL** length, **TRAIL GAP**, **PLAYBACK** speed,
+**INTENSITY**, **DEPTH CONTRAST**, and four colour ramps (ICE / EMBER, THERMAL, PETROL, MONO).
+Tracers read the same field the forces are integrated from, but nothing in a report depends
+on them — they are for seeing and explaining the flow, not for measuring it.
 
 ## Vehicle classes
 
@@ -166,10 +288,31 @@ A tunnel that has never been fitted is never re-fitted implicitly — hand-built
 
 ## Comparing results
 
-Every export writes a `.windtunnel.json` archive next to the HTML and CSV, carrying the
-whole test configuration. **COMPARE RESULTS** (runtime HUD) or **Window → Wind Tunnel →
-Compare Results** (editor) takes two of them and runs a like-for-like audit *before*
-differencing anything:
+Every export writes a `.windtunnel.json` archive next to the HTML and CSV, carrying the whole
+test configuration — that archive is what the comparison reads. Since the tool's honest output
+is a *delta*, this is the feature most of the workflow is aimed at.
+
+### Using it
+
+Open it with **COMPARE RESULTS** in the runtime console or
+**Window → Wind Tunnel → Compare Results** in the editor.
+
+1. **Produce two runs.** Run a test, **EXPORT REPORT**, change exactly one thing — swap the
+   vehicle with a number key, or move one setting — run the same test again and export again.
+   In the demo scene, keys **4**, **5** and **6** are three runs built for this.
+2. **Pick the two runs.** The **RESULT A** and **RESULT B** columns list every archive in the
+   reports folder. Each side has its own test dropdown, so two sessions that ran different
+   queues can still be compared on the test they share.
+3. **Read the verdict banner** — the winner, `TOO CLOSE TO CALL`, or `CANNOT COMPARE` with the
+   reason it refused.
+4. **Check the comparability table** before the numbers. Every check is marked `MATCH`,
+   `NOTED`, `CAVEAT` or `BLOCKS COMPARISON`, with the offending values from each side.
+5. **Read the metric table**: A, B, Δ, Δ % and which side is better *by that metric's polarity*
+   for the class involved. Sweeps get a second table comparing point by point.
+6. **EXPORT COMPARISON** writes the whole audit to its own HTML file. **REFRESH** re-reads the
+   folder — use it after exporting a new run with the window open. **CLOSE** or **Esc** dismisses.
+
+### What the audit does before it differences anything
 
 - **Blocks** the comparison only when the two runs do not measure the same quantity:
   different test procedure, working fluid, or reference-area convention (a car's frontal
