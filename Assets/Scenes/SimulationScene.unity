@@ -207,8 +207,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.063082784, y: 0.92263716, z: -0.17132522, w: 0.33971903}
-  m_LocalPosition: {x: -3.687203, y: 2.6037145, z: 3.6320677}
+  m_LocalRotation: {x: 0.07066015, y: 0.9204293, z: -0.1969783, w: 0.33017683}
+  m_LocalPosition: {x: -9.636846, y: 3.6670094, z: 5.0541058}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -482,7 +482,7 @@ MonoBehaviour:
   trailSpacingSteps: 16
   playbackSpeed: 1
   intensity: 0.8
-  depthContrast: 0
+  depthContrast: 0.6
   slowColor: {r: 0.15, g: 0.35, b: 1, a: 1}
   freestreamColor: {r: 0.95, g: 0.97, b: 1, a: 1}
   fastColor: {r: 1, g: 0.25, b: 0.1, a: 1}
@@ -1009,7 +1009,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Motawea.WindTunnel::Motawea.WindTunnel.FlowSlice
   tunnel: {fileID: 1156066123}
   mode: 0
-  opacity: 0.85
+  opacity: 0
   cpRange: 1
 --- !u!43 &2045405796
 Mesh:
