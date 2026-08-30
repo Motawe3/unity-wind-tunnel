@@ -566,6 +566,10 @@ The sample scene ships five third-party vehicles, every one published under
 | Boat | milamila | [skfb.ly/6VKs9](https://skfb.ly/6VKs9) |
 | autopilot aircraft / drone | Helindu | [skfb.ly/6SwHV](https://skfb.ly/6SwHV) |
 
+Also credited, though not shipped in the sample scene: **“McLaren F1 GTR Longtail (AMS2)”**
+by VuckyZ ([skfb.ly/pEnnV](https://skfb.ly/pEnnV)), CC BY 4.0 — used in the video showcase
+only.
+
 Full attributions, the changes made to each model and the trademark notice are in
 [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md). CC BY 4.0 requires that attribution
 travel with the work, so keep that file intact if you fork or redistribute.
